@@ -4,260 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AgiBot X2 Control Dashboard</title>
-<style>
-/* ============================================================ THEME */
-:root{
-  --bg:#070a12; --bg2:#0b1020;
-  --card:#111827; --card2:#0e1420; --line:#1e2a42; --line2:#2a3a5c;
-  --tx:#e9eef8; --tx2:#93a1bb; --tx3:#5d6b85;
-  --green:#22c55e; --amber:#f5b942; --blue:#4b8bf5; --purple:#a855f7;
-  --red:#ef4444; --cyan:#22d3ee; --pink:#ec4899;
-  --r:14px; --rs:9px;
-  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
-  --thai:"Noto Sans Thai","Leelawadee UI","Sarabun",Tahoma,sans-serif;
-}
-:root[data-theme="light"]{
-  --bg:#eef1f7; --bg2:#e4e9f2; --card:#ffffff; --card2:#f6f8fc;
-  --line:#d3dbe8; --line2:#bcc8db; --tx:#111827; --tx2:#4b5768; --tx3:#8492a8;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%}
-body{
-  background:var(--bg); color:var(--tx); overflow-x:hidden;
-  font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",var(--thai);
-  -webkit-font-smoothing:antialiased;
-}
-button,input,select,textarea{font:inherit;color:inherit}
-button{cursor:pointer;background:none;border:none}
-::-webkit-scrollbar{width:9px;height:9px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--line2);border-radius:5px}
-
-/* ============================================================ SHELL */
-.wrap{max-width:1640px;margin:0 auto;padding:12px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-.card>h3{
-  display:flex;align-items:center;gap:8px;justify-content:space-between;
-  padding:11px 14px;font-size:13.5px;font-weight:650;letter-spacing:.1px;
-  border-bottom:1px solid var(--line);background:var(--card2);
-}
-.card>h3 .sub{font-size:11px;font-weight:400;color:var(--tx3)}
-.body{padding:13px}
-.tag{
-  font-size:10.5px;padding:3px 8px;border-radius:20px;
-  background:var(--bg2);border:1px solid var(--line);color:var(--tx2);
-  white-space:nowrap;font-weight:500;
-}
-.tag.ok{color:var(--green);border-color:#22c55e44;background:#22c55e14}
-.tag.warn{color:var(--amber);border-color:#f5b94244;background:#f5b94214}
-.tag.bad{color:var(--red);border-color:#ef444444;background:#ef444414}
-.tag.live::before{
-  content:"";display:inline-block;width:6px;height:6px;border-radius:50%;
-  background:var(--red);margin-right:5px;vertical-align:1px;animation:pulse 1.6s infinite;
-}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
-.mono{font-family:var(--mono)}
-
-/* ============================================================ HEADER */
-header{
-  position:sticky;top:0;z-index:60;background:color-mix(in srgb,var(--bg) 88%,transparent);
-  backdrop-filter:blur(14px);border-bottom:1px solid var(--line);
-}
-.hd{max-width:1640px;margin:0 auto;padding:10px 14px;display:flex;align-items:center;gap:12px}
-.logo{
-  width:36px;height:36px;border-radius:10px;flex:none;display:grid;place-items:center;
-  background:linear-gradient(135deg,#1e3a8a,#4b8bf5);font-size:18px;
-}
-.ttl{font-size:16px;font-weight:700;letter-spacing:-.2px}
-.ttl span{font-weight:400;color:var(--tx2)}
-.sttl{font-size:11px;color:var(--tx3);margin-top:1px}
-.hd .sp{flex:1}
-.hbtn{
-  padding:7px 12px;border-radius:9px;border:1px solid var(--line);
-  background:var(--card);font-size:12.5px;color:var(--tx2);transition:.15s;
-}
-.hbtn:hover{border-color:var(--line2);color:var(--tx)}
-#clock{font-family:var(--mono);font-size:13px;color:var(--tx2);letter-spacing:.5px}
-
-/* toggle switch */
-.sw{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
-.sw input{display:none}
-.sw i{
-  width:38px;height:21px;border-radius:11px;background:var(--line);
-  position:relative;transition:.22s;flex:none;
-}
-.sw i::after{
-  content:"";position:absolute;top:2.5px;left:2.5px;width:16px;height:16px;
-  border-radius:50%;background:#fff;transition:.22s;
-}
-.sw input:checked + i{background:var(--green)}
-.sw input:checked + i::after{transform:translateX(17px)}
-.sw.amber input:checked + i{background:var(--amber)}
-.sw span{font-size:12.5px}
-
-/* ============================================================ STATUS */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:11px}
-.stat{
-  display:flex;align-items:center;gap:12px;padding:13px 15px;
-  background:var(--card);border:1px solid var(--line);
-  border-left:3px solid var(--c,var(--blue));border-radius:var(--r);
-}
-.stat .ic{
-  width:36px;height:36px;border-radius:9px;flex:none;display:grid;place-items:center;
-  font-size:17px;background:color-mix(in srgb,var(--c) 14%,transparent);
-}
-.stat b{display:block;font-size:10.5px;color:var(--tx3);font-weight:500;text-transform:none}
-.stat u{display:block;font-size:19px;font-weight:700;text-decoration:none;line-height:1.25;color:var(--c)}
-.stat u.sm{font-size:13.5px;font-family:var(--mono);letter-spacing:-.3px}
-
-/* motion bar */
-.mbar{
-  display:flex;align-items:center;gap:12px;padding:11px 15px;margin-bottom:11px;
-  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
-}
-.mbar .hint{font-size:11.5px;color:var(--tx3)}
-.estop{
-  margin-left:auto;padding:9px 17px;border-radius:9px;font-weight:650;font-size:13px;
-  background:var(--red);color:#fff;box-shadow:0 2px 12px #ef444440;transition:.15s;
-}
-.estop:hover{background:#dc2626}
-.estop.on{background:#7f1d1d;animation:pulse .8s infinite}
-body.estopped .mbar{border-color:var(--red);background:#ef444410}
-
-/* ============================================================ GRID */
-.grid{display:grid;grid-template-columns:1.32fr 1fr;gap:11px;align-items:start}
-.col{display:flex;flex-direction:column;gap:11px;min-width:0}
-.duo{display:grid;grid-template-columns:1fr 1fr;gap:11px;min-width:0}
-@media(max-width:1200px){
-  .grid{grid-template-columns:1fr}
-  .stats{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:640px){
-  .stats{grid-template-columns:1fr}
-  .duo{grid-template-columns:1fr}
-}
-
-/* ============================================================ CAMERAS */
-.cams{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
-@media(max-width:900px){.cams{grid-template-columns:repeat(3,1fr)}}
-.cam{cursor:pointer;min-width:0}
-.cam .fr{
-  position:relative;aspect-ratio:4/3;border-radius:var(--rs);overflow:hidden;
-  background:#05070d;border:1px solid var(--line);
-}
-.cam canvas,.cam img{width:100%;height:100%;object-fit:cover;display:block}
-.cam .fps{
-  position:absolute;right:4px;top:4px;font-size:9px;padding:2px 5px;border-radius:4px;
-  background:#000a;font-family:var(--mono);color:var(--green);
-}
-.cam .nm{font-size:10.5px;color:var(--tx2);margin-top:5px;text-align:center;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.cam:hover .fr{border-color:var(--blue)}
-
-/* ============================================================ VIZ */
-.viz{position:relative;background:#05070d;border:1px solid var(--line);
-  border-radius:var(--rs);overflow:hidden}
-.viz canvas{display:block;width:100%}
-.viz .ov{
-  position:absolute;left:8px;bottom:6px;font-size:10px;color:var(--tx3);
-  font-family:var(--mono);pointer-events:none;text-shadow:0 1px 3px #000;
-}
-.viz .ov.r{left:auto;right:8px}
-.seg{display:inline-flex;background:var(--bg2);border:1px solid var(--line);border-radius:7px;overflow:hidden}
-.seg button{padding:4px 10px;font-size:11px;color:var(--tx3)}
-.seg button.on{background:var(--blue);color:#fff}
-
-/* IMU */
-.kv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.kv div{background:var(--card2);border:1px solid var(--line);border-radius:var(--rs);padding:9px 10px}
-.kv b{display:block;font-size:9.5px;color:var(--tx3);font-weight:500}
-.kv u{display:block;font-size:16px;font-weight:650;text-decoration:none;font-family:var(--mono)}
-details{margin-top:9px}
-details summary{
-  cursor:pointer;font-size:11.5px;color:var(--tx2);list-style:none;padding:5px 0;
-}
-details summary::-webkit-details-marker{display:none}
-details summary::before{content:"▸ ";color:var(--tx3)}
-details[open] summary::before{content:"▾ "}
-details pre{
-  font-family:var(--mono);font-size:10.5px;background:#05070d;border:1px solid var(--line);
-  border-radius:var(--rs);padding:9px;overflow:auto;max-height:190px;color:var(--tx2);line-height:1.5;
-}
-
-/* ============================================================ BUTTONS */
-.grp{margin-bottom:13px}
-.grp>b{display:block;font-size:11.5px;color:var(--tx2);margin-bottom:7px;font-weight:600}
-.grp>b i{font-style:normal;font-weight:400;color:var(--tx3);font-size:10.5px}
-.btns{display:flex;flex-wrap:wrap;gap:6px}
-.ab{
-  padding:6px 11px;border-radius:8px;font-size:11.5px;
-  background:var(--card2);border:1px solid var(--line);color:var(--tx);transition:.13s;
-}
-.ab:hover:not(:disabled){border-color:var(--blue);background:#4b8bf520;transform:translateY(-1px)}
-.ab:active:not(:disabled){transform:translateY(0)}
-.ab:disabled{opacity:.34;cursor:not-allowed}
-.ab.sent{border-color:var(--green);background:#22c55e26}
-.row{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
-select,input[type=text]{
-  padding:6.5px 10px;border-radius:8px;background:var(--card2);
-  border:1px solid var(--line);font-size:12px;outline:none;
-}
-select:focus,input:focus{border-color:var(--blue)}
-.pb{padding:7px 14px;border-radius:8px;background:var(--blue);color:#fff;font-size:12px;font-weight:600}
-.pb:hover{filter:brightness(1.12)}
-.pb.g{background:var(--green)} .pb.r{background:var(--red)} .pb.gray{background:var(--line2)}
-.pb:disabled{opacity:.4;cursor:not-allowed;filter:none}
-
-/* ============================================================ CHAT/LOG */
-.chat{height:196px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}
-.chat .ph{margin:auto;text-align:center;color:var(--tx3);font-size:12px;line-height:1.7}
-.msg{max-width:88%;padding:8px 11px;border-radius:11px;font-size:12.5px;line-height:1.5}
-.msg.u{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:3px}
-.msg.r{align-self:flex-start;background:var(--card2);border:1px solid var(--line);border-bottom-left-radius:3px}
-.logs{
-  height:170px;overflow-y:auto;font-family:var(--mono);font-size:10.5px;
-  background:#05070d;border-radius:var(--rs);padding:8px;line-height:1.65;
-}
-.logs div{white-space:pre-wrap;word-break:break-all}
-.logs .t{color:var(--tx3)} .logs .i{color:var(--blue)} .logs .s{color:var(--green)}
-.logs .w{color:var(--amber)} .logs .e{color:var(--red)}
-
-/* ============================================================ MODAL */
-.modal{
-  position:fixed;inset:0;z-index:200;background:#000b;backdrop-filter:blur(4px);
-  display:none;align-items:center;justify-content:center;padding:20px;
-}
-.modal.on{display:flex}
-.mc{
-  background:var(--card);border:1px solid var(--line2);border-radius:16px;
-  max-width:820px;width:100%;max-height:86vh;display:flex;flex-direction:column;
-  box-shadow:0 24px 70px #000a;
-}
-.mc>h3{display:flex;justify-content:space-between;align-items:center;padding:14px 17px;
-  border-bottom:1px solid var(--line);font-size:15px}
-.mc>.mb{padding:15px 17px;overflow-y:auto}
-.x{font-size:21px;color:var(--tx3);line-height:1;padding:0 4px}
-.x:hover{color:var(--tx)}
-table{width:100%;border-collapse:collapse;font-size:11.5px}
-th,td{text-align:left;padding:6px 9px;border-bottom:1px solid var(--line)}
-th{color:var(--tx3);font-weight:600;font-size:10.5px;position:sticky;top:0;background:var(--card)}
-td.m{font-family:var(--mono);font-size:10.5px}
-.fld{margin-bottom:12px}
-.fld label{display:block;font-size:11.5px;color:var(--tx2);margin-bottom:5px}
-.fld input,.fld select{width:100%}
-.note{font-size:11px;color:var(--tx3);line-height:1.65;background:var(--card2);
-  border:1px solid var(--line);border-left:2px solid var(--amber);border-radius:var(--rs);padding:10px 12px}
-.note code{font-family:var(--mono);background:var(--bg2);padding:1px 5px;border-radius:4px;color:var(--cyan)}
-
-/* toast */
-#toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:300;
-  display:flex;flex-direction:column;gap:7px;align-items:center;pointer-events:none}
-.tst{padding:9px 17px;border-radius:9px;background:var(--card);border:1px solid var(--line2);
-  font-size:12.5px;box-shadow:0 8px 26px #0008;animation:up .25s}
-.tst.ok{border-color:var(--green);color:var(--green)}
-.tst.err{border-color:var(--red);color:var(--red)}
-@keyframes up{from{opacity:0;transform:translateY(9px)}}
-</style>
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/dashboard.css">
+<link rel="stylesheet" href="css/pages.css">
 </head>
 <body>
 
@@ -269,37 +18,72 @@ td.m{font-family:var(--mono);font-size:10.5px}
       <div class="sttl">Physical AI · การสั่งงานหุ่นยนต์ด้วยเสียงภาษาไทย</div>
     </div>
     <div class="sp"></div>
-    <label class="sw amber"><input type="checkbox" id="simSw" checked><i></i><span>โหมดจำลอง</span></label>
     <span id="clock">--:--:--</span>
     <button class="hbtn" id="topicsBtn" title="รายการ ROS 2 topics">🔍 Topics</button>
     <button class="hbtn" id="themeBtn" title="สลับธีม">☀️</button>
     <button class="hbtn" id="setBtn">⚙️ ตั้งค่า</button>
   </div>
+
+  <!-- The tab is the mode. There is no separate simulation switch any more:
+       two controls for one piece of state can only ever disagree. -->
+  <nav class="tabs">
+    <button class="tab" data-tab="live">🤖 ใช้งานจริง <i>Live robot</i></button>
+    <button class="tab" data-tab="demo">🎬 โหมดสาธิต <i>Demo</i></button>
+    <button class="tab" data-tab="guide">📖 วิธีเชื่อมต่อ <i>Setup guide</i></button>
+  </nav>
 </header>
 
 <div class="wrap">
-  <!-- STATUS -->
-  <div class="stats">
-    <div class="stat" style="--c:var(--green)"><div class="ic">📡</div>
-      <div><b>การเชื่อมต่อ</b><u id="sConn">กำลังเชื่อมต่อ…</u></div></div>
-    <div class="stat" style="--c:var(--green)" id="battCard"><div class="ic">🔋</div>
-      <div><b>แบตเตอรี่</b><u id="sBatt">--%</u></div></div>
-    <div class="stat" style="--c:var(--cyan)"><div class="ic">⚡</div>
-      <div><b>แรงดันไฟ</b><u id="sVolt">-- V</u></div></div>
-    <div class="stat" style="--c:var(--purple)"><div class="ic">🎛</div>
-      <div><b>โหมดทำงาน</b><u class="sm" id="sMode">UNKNOWN</u></div></div>
+
+  <!-- Shared across Live and Demo; hidden on the guide. -->
+  <div id="chrome">
+    <div class="stats">
+      <div class="stat" style="--c:var(--green)"><div class="ic">📡</div>
+        <div><b>การเชื่อมต่อ</b><u id="sConn">กำลังเชื่อมต่อ…</u></div></div>
+      <div class="stat" style="--c:var(--green)" id="battCard"><div class="ic">🔋</div>
+        <div><b>แบตเตอรี่</b><u id="sBatt">--%</u></div></div>
+      <div class="stat" style="--c:var(--cyan)"><div class="ic">⚡</div>
+        <div><b>แรงดันไฟ</b><u id="sVolt">-- V</u></div></div>
+      <div class="stat" style="--c:var(--purple)"><div class="ic">🎛</div>
+        <div><b>โหมดทำงาน</b><u class="sm" id="sMode">UNKNOWN</u></div></div>
+    </div>
+
+    <div class="mbar">
+      <label class="sw"><input type="checkbox" id="motionSw"><i></i>
+        <span>อนุญาตให้หุ่นยนต์เคลื่อนไหว</span></label>
+      <span class="hint" id="motionHint">ระบบล็อกการเคลื่อนไหวเพื่อความปลอดภัย</span>
+      <button class="estop" id="estopBtn">● หยุดฉุกเฉิน</button>
+    </div>
   </div>
 
-  <!-- MOTION -->
-  <div class="mbar">
-    <label class="sw"><input type="checkbox" id="motionSw"><i></i>
-      <span>อนุญาตให้หุ่นยนต์เคลื่อนไหว</span></label>
-    <span class="hint" id="motionHint">ระบบล็อกการเคลื่อนไหวเพื่อความปลอดภัย</span>
-    <button class="estop" id="estopBtn">● หยุดฉุกเฉิน</button>
+<!-- ======================================================== TAB · LIVE -->
+<section class="pane" id="pane-live">
+
+  <!-- First thing a disconnected operator sees. It has to point somewhere. -->
+  <div id="offline">
+    <h4>🔌 <span class="th">ยังไม่ได้เชื่อมต่อกับหุ่นยนต์</span><span class="en">Not connected to a robot</span></h4>
+    <p class="th">แดชบอร์ดเริ่มต้นที่โหมดใช้งานจริง และกำลังพยายามต่อไปที่หุ่นยนต์อยู่เรื่อย ๆ
+      ถ้าเพิ่งเสียบสายแลนหรือเพิ่งเปิด rosbridge ให้รอสักครู่ เดี๋ยวมันจะต่อเอง</p>
+    <p class="en">The dashboard starts in live mode and keeps retrying in the background. If you have
+      just plugged in the cable or started rosbridge, give it a moment — it will connect on its own.</p>
+    <div class="row">
+      <button class="pb g" data-act="goGuide">
+        <span class="th1">📖 สอนต่อหุ่นยนต์ทีละขั้น</span><span class="en1">📖 Step-by-step setup guide</span></button>
+      <button class="pb" data-act="retry">
+        <span class="th1">↻ ลองเชื่อมต่ออีกครั้ง</span><span class="en1">↻ Retry now</span></button>
+      <button class="pb gray" data-act="goDemo">
+        <span class="th1">🎬 ดูโหมดสาธิตก่อน</span><span class="en1">🎬 See the demo instead</span></button>
+    </div>
+    <div class="why">
+      <span class="th">ต้องมีสองอย่างพร้อมกันถึงจะต่อได้: หุ่นยนต์ต้องเปิด <code>rosbridge_server</code> ค้างไว้
+        และที่อยู่ในหน้าตั้งค่าต้องตรงกับ IP ของหุ่นยนต์</span>
+      <span class="en">Two things must both be true: the robot has to be running
+        <code>rosbridge_server</code>, and the address in settings has to match the robot's IP.</span>
+    </div>
   </div>
 
   <div class="grid">
-  <!-- ================= LEFT ================= -->
+  <!-- ============ LEFT ============ -->
   <div class="col">
 
     <div class="card">
@@ -324,7 +108,7 @@ td.m{font-family:var(--mono);font-size:10.5px}
             <input type="checkbox" id="pcSpin" checked><i></i><span style="font-size:11px">หมุนอัตโนมัติ</span></label>
           <div class="viz">
             <canvas id="pc3d" width="420" height="300"></canvas>
-            <div class="ov">ลาก = หมุน · ล้อ = ซูม</div>
+            <div class="ov">ลาก = หมุน · Shift+ล้อ = ซูม</div>
             <div class="ov r" id="pcInfo">— pts</div>
           </div>
         </div>
@@ -366,10 +150,10 @@ td.m{font-family:var(--mono);font-size:10.5px}
       <h3>แผนที่ (SLAM)<span class="tag">สร้างแผนที่ขณะเดินสำรวจ</span></h3>
       <div class="body">
         <div class="row" style="margin-bottom:9px">
-          <button class="ab" id="mapStart">🅰 เริ่มสร้างแผนที่</button>
+          <button class="ab" data-act="mapStart">🅰 เริ่มสร้างแผนที่</button>
           <input type="text" id="mapName" value="map2" style="width:118px">
-          <button class="ab" id="mapStop">🅱 หยุด+บันทึก</button>
-          <button class="ab" id="mapLoad">🗺 ดึงแผนที่มาแสดง</button>
+          <button class="ab" data-act="mapStop">🅱 หยุด+บันทึก</button>
+          <button class="ab" data-act="mapLoad">🗺 ดึงแผนที่มาแสดง</button>
         </div>
         <label class="sw" style="margin-bottom:9px">
           <input type="checkbox" id="mapShow" checked><i></i>
@@ -382,7 +166,7 @@ td.m{font-family:var(--mono);font-size:10.5px}
     </div>
   </div>
 
-  <!-- ================= RIGHT ================= -->
+  <!-- ============ RIGHT ============ -->
   <div class="col">
 
     <div class="card">
@@ -408,7 +192,7 @@ td.m{font-family:var(--mono);font-size:10.5px}
       </h3>
       <div class="body"><div class="viz">
         <canvas id="pose" width="440" height="320"></canvas>
-        <div class="ov">ลาก = หมุน · สกอลล์ = ซูม · โมเดลจาก URDF ทรงกระบอก AgiBot</div>
+        <div class="ov">ลาก = หมุน · Shift+ล้อ = ซูม · โมเดลจาก URDF ทรงกระบอก AgiBot</div>
       </div></div>
     </div>
 
@@ -433,6 +217,16 @@ td.m{font-family:var(--mono);font-size:10.5px}
     </div>
   </div>
   </div>
+</section>
+
+<!-- ======================================================== TAB · DEMO -->
+<!-- built by js/demo.js -->
+<section class="pane" id="pane-demo"></section>
+
+<!-- ======================================================= TAB · GUIDE -->
+<!-- built by js/guide.js -->
+<section class="pane" id="pane-guide"></section>
+
 </div>
 
 <!-- ======================= DISCOVERY MODAL ======================= -->
@@ -460,6 +254,9 @@ td.m{font-family:var(--mono);font-size:10.5px}
       <input type="text" id="cfgThrottle" value="100"></div>
     <div class="fld"><label>จุดสูงสุดของ Point Cloud ต่อเฟรม</label>
       <input type="text" id="cfgMaxPts" value="14000"></div>
+    <label class="sw" style="margin-bottom:12px">
+      <input type="checkbox" id="cfgRetry" checked><i></i>
+      <span style="font-size:12px">ลองเชื่อมต่อใหม่อัตโนมัติทุก 10 วินาที</span></label>
     <div class="row" style="margin:14px 0">
       <button class="pb g" id="cfgConnect">เชื่อมต่อ</button>
       <button class="pb r" id="cfgDisconnect">ตัดการเชื่อมต่อ</button>
@@ -469,7 +266,7 @@ td.m{font-family:var(--mono);font-size:10.5px}
       บนหุ่นยนต์ (PC2) ให้รัน:<br>
       <code>sudo apt install ros-humble-rosbridge-suite</code><br>
       <code>ros2 launch rosbridge_server rosbridge_websocket_launch.xml</code><br><br>
-      ปิด <b>โหมดจำลอง</b> แล้วกดเชื่อมต่อ เมื่อสำเร็จรายการ topic จะเปิดอัตโนมัติ
+      ทำตามไม่ถูก? เปิดแท็บ <b>📖 วิธีเชื่อมต่อ</b> ด้านบน มีสอนทีละขั้นพร้อมคำแปล
     </div>
   </div>
 </div></div>
@@ -483,916 +280,25 @@ td.m{font-family:var(--mono);font-size:10.5px}
 
 <div id="toast"></div>
 
-<script>
-"use strict";
-/* ==================================================================
-   AgiBot X2 Command Center
-   Single-file dashboard. Two data sources behind one event bus:
-     MOCK  - procedural generators, so every panel is verifiable offline
-     LIVE  - rosbridge v2 over WebSocket (hand-rolled, zero dependencies)
-   Panels never know which one is feeding them.
-   ================================================================== */
-
-/* ---------- X2 endpoint map (audited from topics_and_services) ---------- */
-const T = {
-  camRGB   : "/aima/hal/sensor/rgbd_head_front/rgb_image/compressed",
-  camCenter: "/aima/hal/sensor/rgb_head_rear/rgb_image/compressed",
-  camRear  : "/aima/hal/sensor/rgb_head_rear/rgb_image/compressed",
-  camSL    : "/aima/hal/sensor/stereo_head_front_left/rgb_image/compressed",
-  camSR    : "/aima/hal/sensor/stereo_head_front_right/rgb_image/compressed",
-  depth    : "/aima/hal/sensor/rgbd_head_front/depth_image",
-  lidar    : "/aima/hal/sensor/lidar_chest_front/lidar_pointcloud",
-  imu      : "/aima/hal/imu/chest/state",
-  pmu      : "/aima/hal/pmu/state",
-  joints   : "/aima/hal/joint/state",
-  odom     : "/slam/lidar_odom",
-  slamCmd  : "/integrated_command",
-  reloc    : "/relocalization_pose",
-  vel      : "/aima/mc/locomotion/velocity",
-};
-const S = {
-  setAction : "/aimdk_5Fmsgs/srv/SetMcAction",
-  getAction : "/aimdk_5Fmsgs/srv/GetMcAction",
-  inputSrc  : "/aimdk_5Fmsgs/srv/SetMcInputSource",
-  preset    : "/aimdk_5Fmsgs/srv/SetMcPresetMotion",
-  tts       : "/aimdk_5Fmsgs/srv/PlayTts",
-  emoji     : "/face_ui_proxy/play_emoji",
-  getMap    : "/aimdk_5Fmsgs/srv/GetStoredMapByName",
-};
-/* Preset motion IDs - verbatim from aimdk_msgs/msg/McPresetMotion.msg */
-const ARM = [
-  ["✋ ยกมือ",1001],["👋 โบกมือ",1002],["🤚 โบกมือเบา ๆ",3007],["🙌 โบกมือหน้าอก",3010],
-  ["🔄 หันตัวโบกมือ",2001],["🤝 จับมือ",1003],["❌ ขวางหน้า",3009],["👍 ไลค์",3002],
-  ["✌️ ท่า YE",3003],["👏 ตบมือ",1008],["🙏 ตบมือ 2",3015],["🫡 เคารพ",1013],
-  ["🙇 โค้งคำนับ",3001],["🤗 กอด",3008],["👊 ชนกำปั้น",1009],["📣 เชียร์",3011],
-  ["😘 ส่งจูบ",1004],["💋 จูบต่ำ",3012],["💗 ทำหัวใจ",3004],["😢 ท่าเศร้า",3006],
-  ["🗣 ท่าพูด",3016],["📸 โพสถ่ายรูป",3018],["🎞 โพส 3 จังหวะ",3019],
-  ["💃 เต้น 1",3013],["🕺 เต้น 2",3014],
-];
-const HEAD = [["😌 พยักหน้า",4001],["🙂‍↔️ ส่ายหน้า",4002]];
-/* Emoji IDs: anchors documented in py_examples/play_emoji.py; the rest follow
-   its 10-step spacing and are marked UNVERIFIED until confirmed on hardware. */
-const FACE = [
-  ["😀 ดีใจ",90],["😄 ดีใจมาก",100],["🥰 ปลื้มปิติ",110],["😍 ชื่นชม",200],
-  ["🥺 น่ารัก",120],["😢 เศร้า",130],["😔 เดินใจ",140],["😠 โกรธ",150],
-  ["😡 โกรธมาก",190],["😲 ตกใจ",160],["😳 ขวย",170],["🤔 คิด",180],
-  ["😐 จริงจัง",70],["😑 เบื่อ",60],["😴 ง่วง",80],["😉 กะพริบตา",1],
-];
-
-/* ---------------------------------------------------------------- utils */
-const $  = s => document.querySelector(s);
-const $$ = s => [...document.querySelectorAll(s)];
-const clamp=(v,a,b)=>v<a?a:v>b?b:v;
-const lerp=(a,b,t)=>a+(b-a)*t;
-const now=()=>performance.now()/1000;
-
-function toast(msg,kind=""){
-  const d=document.createElement("div"); d.className="tst "+kind; d.textContent=msg;
-  $("#toast").appendChild(d); setTimeout(()=>d.remove(),2600);
-}
-function log(msg,lvl="i"){
-  const el=$("#logs"); const t=new Date().toTimeString().slice(0,8);
-  const d=document.createElement("div");
-  d.innerHTML=`<span class="t">${t}</span> <span class="${lvl}">${msg}</span>`;
-  el.appendChild(d); el.scrollTop=el.scrollHeight;
-  while(el.children.length>400) el.firstChild.remove();
-}
-function b64bytes(b64){
-  const s=atob(b64), n=s.length, a=new Uint8Array(n);
-  for(let i=0;i<n;i++) a[i]=s.charCodeAt(i);
-  return a;
-}
-/* Event bus - the seam between data source and panels */
-const Bus={
-  m:new Map(), rate:new Map(),
-  on(t,fn){ (this.m.get(t)||this.m.set(t,[]).get(t)).push(fn); },
-  emit(t,msg){
-    const r=this.rate.get(t)||{n:0,t0:now(),hz:0};
-    r.n++; const dt=now()-r.t0;
-    if(dt>=1){ r.hz=r.n/dt; r.n=0; r.t0=now(); }
-    this.rate.set(t,r);
-    (this.m.get(t)||[]).forEach(fn=>{ try{fn(msg);}catch(e){console.error(t,e);} });
-  },
-  hz(t){ return (this.rate.get(t)||{hz:0}).hz; }
-};
-
-/* ============================================================ ROSBRIDGE */
-class RosBridge{
-  constructor(){ this.ws=null; this.id=0; this.pending=new Map(); this.subs=new Set();
-    this.connected=false; this.onstate=()=>{}; }
-  connect(url){
-    this.close();
-    log("เชื่อมต่อ rosbridge → "+url,"i");
-    try{ this.ws=new WebSocket(url); }
-    catch(e){ log("URL ไม่ถูกต้อง: "+e.message,"e"); this.onstate(false,"bad url"); return; }
-    this.ws.onopen=()=>{ this.connected=true; log("rosbridge เชื่อมต่อสำเร็จ","s"); this.onstate(true); };
-    this.ws.onclose=()=>{ if(this.connected) log("rosbridge ปิดการเชื่อมต่อ","w");
-      this.connected=false; this.onstate(false); };
-    this.ws.onerror=()=>{ log("rosbridge error — ตรวจว่า rosbridge_server รันอยู่ และ IP/พอร์ตถูกต้อง","e"); };
-    this.ws.onmessage=ev=>{
-      let m; try{ m=JSON.parse(ev.data); }catch{ return; }
-      if(m.op==="publish") Bus.emit(m.topic,m.msg);
-      else if(m.op==="service_response"){
-        const p=this.pending.get(m.id);
-        if(p){ this.pending.delete(m.id); m.result===false?p.rej(m.values):p.res(m.values); }
-      }
-      else if(m.op==="status" && m.level==="error") log("rosbridge: "+m.msg,"e");
-    };
-  }
-  close(){ if(this.ws){ this.connected=false; try{this.ws.close();}catch{} this.ws=null; } this.subs.clear(); }
-  send(o){ if(this.ws && this.ws.readyState===1) this.ws.send(JSON.stringify(o)); }
-  subscribe(topic,type,throttle=100){
-    if(this.subs.has(topic)) return; this.subs.add(topic);
-    this.send({op:"subscribe",id:"s"+(++this.id),topic,type,
-      throttle_rate:throttle,queue_length:1,compression:"none"});
-  }
-  advertise(topic,type){ this.send({op:"advertise",id:"a"+(++this.id),topic,type}); }
-  publish(topic,msg){ this.send({op:"publish",id:"p"+(++this.id),topic,msg}); }
-  call(service,type,args={}){
-    return new Promise((res,rej)=>{
-      if(!this.connected) return rej({message:"ไม่ได้เชื่อมต่อ"});
-      const id="c"+(++this.id);
-      this.pending.set(id,{res,rej});
-      this.send({op:"call_service",id,service,type,args});
-      setTimeout(()=>{ if(this.pending.has(id)){ this.pending.delete(id);
-        rej({message:"service timeout"}); } },8000);
-    });
-  }
-  topics(){ return this.call("/rosapi/topics","rosapi/Topics",{}); }
-}
-const ros=new RosBridge();
-
-/* ============================================================== STATE */
-const App={
-  sim:true, motion:false, estop:false,
-  cfg:{url:"ws://10.0.1.41:9090",throttle:100,maxPts:14000},
-  cloud:[], depthBuf:null, depthW:0, depthH:0,
-  imu:{w:1,x:0,y:0,z:0,ax:0,ay:0,az:9.81,gx:0,gy:0,gz:0},
-  pose:{x:0,y:0,yaw:0}, joints:{}, mapping:false,
-  mapGrid:null, mapW:0, mapH:0, mapRes:0.05,
-  discovered:[],
-};
-
-/* ============================================================== MOCK */
-const Mock={
-  t:0, room:[], gesture:null, gestureT:0,
-  init(){
-    /* A room outline the LiDAR "sees": walls with a doorway and two pillars. */
-    const W=[[-4,-3,4,-3],[4,-3,4,5],[4,5,-4,5],[-4,5,-4,-3],[-1,1,2.4,1]];
-    this.room=W;
-  },
-  ray(a){ /* distance to nearest wall along angle a from origin */
-    let best=Infinity;
-    for(const [x1,y1,x2,y2] of this.room){
-      const dx=Math.cos(a),dy=Math.sin(a),ex=x2-x1,ey=y2-y1;
-      const den=dx*ey-dy*ex; if(Math.abs(den)<1e-9) continue;
-      const t=((x1)*ey-(y1)*ex)/den, u=((x1)*dy-(y1)*dx)/den;
-      if(t>0.05 && u>=0 && u<=1) best=Math.min(best,t);
-    }
-    return best===Infinity?12:best;
-  },
-  tick(dt){
-    this.t+=dt;
-    const t=this.t;
-    /* --- PMU --- */
-    Bus.emit(T.pmu,{battery_percent:75-((t/240)%12), bus_48v_voltage:51.48+Math.sin(t*.3)*.18});
-    /* --- IMU: gentle standing sway --- */
-    const roll=Math.sin(t*.7)*.035, pitch=Math.sin(t*.53+1)*.05, yaw=Math.sin(t*.21)*.13;
-    const cr=Math.cos(roll/2),sr=Math.sin(roll/2),cp=Math.cos(pitch/2),sp=Math.sin(pitch/2),
-          cy=Math.cos(yaw/2),sy=Math.sin(yaw/2);
-    Bus.emit(T.imu,{orientation:{
-        w:cr*cp*cy+sr*sp*sy, x:sr*cp*cy-cr*sp*sy,
-        y:cr*sp*cy+sr*cp*sy, z:cr*cp*sy-sr*sp*cy},
-      angular_velocity:{x:Math.cos(t*.7)*.02,y:Math.cos(t*.53)*.03,z:Math.cos(t*.21)*.01},
-      linear_acceleration:{x:Math.sin(t*1.6)*.16,y:Math.cos(t*1.3)*.13,z:9.81+Math.sin(t*2.1)*.09}});
-    /* --- LiDAR: 3D cloud swept from the room outline --- */
-    const pts=[]; const N=2600;
-    for(let i=0;i<N;i++){
-      const a=(i/N)*Math.PI*2, r=this.ray(a+yaw)*(1+(Math.random()-.5)*.012);
-      if(r>11) continue;
-      const rings=4;
-      for(let k=0;k<rings;k++){
-        const z=-0.85+k*0.42+(Math.random()-.5)*.06;
-        if(Math.random()<0.45) continue;
-        pts.push([Math.cos(a)*r,Math.sin(a)*r,z]);
-      }
-    }
-    for(let i=0;i<340;i++){ /* floor returns */
-      const a=Math.random()*Math.PI*2, r=Math.random()*3.2+.4;
-      pts.push([Math.cos(a)*r,Math.sin(a)*r,-1.02+(Math.random()-.5)*.03]);
-    }
-    App.cloud=pts;
-    Bus.emit(T.lidar,{__mock:true,points:pts});
-    /* --- odom: slow drift --- */
-    App.pose={x:Math.sin(t*.09)*1.5,y:Math.cos(t*.07)*1.1,yaw:yaw};
-    Bus.emit(T.odom,{__mock:true});
-    /* --- joints / gesture playback --- */
-    if(this.gesture && t-this.gestureT>3.2) this.gesture=null;
-    Bus.emit(T.joints,{__mock:true});
-  },
-  playGesture(id){ this.gesture=id; this.gestureT=this.t; }
-};
-
-/* ================================================== CAMERA SIMULATION */
-const CAMS=[
-  {id:"rgbd",  name:"หน้า (RGBD)",   topic:T.camRGB,   hue:210},
-  {id:"center",name:"หน้า (Center)", topic:T.camCenter,hue:200},
-  {id:"rear",  name:"หลัง",          topic:T.camRear,  hue:26},
-  {id:"sl",    name:"Stereo ซ้าย",   topic:T.camSL,    hue:205},
-  {id:"sr",    name:"Stereo ขวา",    topic:T.camSR,    hue:205},
-];
-function drawRoom(ctx,w,h,hue,phase,fish){
-  /* Procedural "office room" so the tiles look like a real feed offline. */
-  const g=ctx.createLinearGradient(0,0,0,h);
-  g.addColorStop(0,`hsl(${hue},14%,26%)`); g.addColorStop(.55,`hsl(${hue},12%,17%)`);
-  g.addColorStop(1,`hsl(${hue},10%,10%)`);
-  ctx.fillStyle=g; ctx.fillRect(0,0,w,h);
-  const hz=h*0.58;
-  ctx.fillStyle=`hsl(${hue},9%,13%)`; ctx.fillRect(0,hz,w,h-hz);
-  ctx.strokeStyle=`hsl(${hue},12%,30%)`; ctx.lineWidth=1;
-  /* perspective floor */
-  for(let i=-6;i<=6;i++){
-    ctx.beginPath(); ctx.moveTo(w/2+i*w*0.09,hz); ctx.lineTo(w/2+i*w*0.55,h); ctx.stroke();
-  }
-  for(let i=1;i<7;i++){
-    const y=hz+(h-hz)*Math.pow(i/7,1.9);
-    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
-  }
-  /* wall furniture drifting with phase = fake parallax */
-  const off=Math.sin(phase*0.35)*w*0.05;
-  ctx.fillStyle=`hsl(${hue},10%,22%)`;
-  ctx.fillRect(w*0.06+off,hz-h*0.30,w*0.20,h*0.30);
-  ctx.fillRect(w*0.72+off,hz-h*0.22,w*0.22,h*0.22);
-  ctx.fillStyle=`hsl(${(hue+40)%360},30%,34%)`;
-  ctx.fillRect(w*0.40+off,hz-h*0.17,w*0.17,h*0.17);
-  /* ceiling lights */
-  for(let i=0;i<3;i++){
-    const x=w*(0.2+i*0.3)+off*0.5;
-    const gl=ctx.createRadialGradient(x,h*0.10,1,x,h*0.10,w*0.13);
-    gl.addColorStop(0,"#ffffff55"); gl.addColorStop(1,"#ffffff00");
-    ctx.fillStyle=gl; ctx.beginPath(); ctx.arc(x,h*0.10,w*0.13,0,7); ctx.fill();
-  }
-  if(fish){ /* vignette for the fisheye rear cam */
-    const v=ctx.createRadialGradient(w/2,h/2,h*0.22,w/2,h/2,h*0.72);
-    v.addColorStop(0,"#0000"); v.addColorStop(1,"#000e");
-    ctx.fillStyle=v; ctx.fillRect(0,0,w,h);
-  }
-  /* sensor noise */
-  ctx.globalAlpha=.05;
-  for(let i=0;i<90;i++){
-    ctx.fillStyle=Math.random()<.5?"#fff":"#000";
-    ctx.fillRect(Math.random()*w,Math.random()*h,2,2);
-  }
-  ctx.globalAlpha=1;
-}
-const camState={};
-function buildCams(){
-  const box=$("#cams"); box.innerHTML="";
-  CAMS.forEach(c=>{
-    const d=document.createElement("div"); d.className="cam";
-    d.innerHTML=`<div class="fr"><canvas width="320" height="240"></canvas>
-      <img style="display:none"><span class="fps">0.0</span></div>
-      <div class="nm">${c.name}</div>`;
-    d.onclick=()=>openCam(c);
-    box.appendChild(d);
-    camState[c.id]={el:d,cv:d.querySelector("canvas"),img:d.querySelector("img"),
-                    fps:d.querySelector(".fps"),phase:Math.random()*30};
-    /* Live: compressed image arrives base64 -> straight into an <img> */
-    Bus.on(c.topic,msg=>{
-      if(App.sim||!msg||!msg.format&&!msg.data) return;
-      const st=camState[c.id];
-      st.cv.style.display="none"; st.img.style.display="block";
-      st.img.src="data:image/jpeg;base64,"+msg.data;
-      st.fps.textContent=Bus.hz(c.topic).toFixed(1);
-    });
-  });
-}
-function tickCams(dt){
-  if(!App.sim) return;
-  CAMS.forEach(c=>{
-    const st=camState[c.id]; st.phase+=dt;
-    st.cv.style.display="block"; st.img.style.display="none";
-    drawRoom(st.cv.getContext("2d"),320,240,c.hue,st.phase+(c.id==="rear"?9:0),c.id==="rear");
-    st.fps.textContent="30.0";
-  });
-}
-let bigCam=null;
-function openCam(c){ bigCam=c; $("#camTitle").textContent=c.name; $("#camModal").classList.add("on"); }
-function tickBigCam(){
-  if(!bigCam || !$("#camModal").classList.contains("on")) return;
-  const cv=$("#camBig"), ctx=cv.getContext("2d");
-  if(App.sim) drawRoom(ctx,cv.width,cv.height,c_hue(bigCam),Mock.t,bigCam.id==="rear");
-  else{ const st=camState[bigCam.id];
-    if(st.img.src) ctx.drawImage(st.img,0,0,cv.width,cv.height); }
-}
-const c_hue=c=>c.hue;
-
-/* ==================================================== LIDAR 2D (top-down) */
-function drawLidar2D(){
-  const cv=$("#lidar2d"), ctx=cv.getContext("2d"), w=cv.width, h=cv.height;
-  ctx.fillStyle="#05070d"; ctx.fillRect(0,0,w,h);
-  const cx=w/2, cy=h/2, scale=Math.min(w,h)/2/6.2;
-  ctx.strokeStyle="#132033"; ctx.lineWidth=1;
-  for(let r=1;r<=6;r++){ ctx.beginPath(); ctx.arc(cx,cy,r*scale,0,7); ctx.stroke(); }
-  ctx.beginPath(); ctx.moveTo(cx,0); ctx.lineTo(cx,h); ctx.moveTo(0,cy); ctx.lineTo(w,cy); ctx.stroke();
-  const pts=App.cloud;
-  ctx.fillStyle="#22c55e";
-  let n=0;
-  for(const p of pts){
-    if(p[2]<-0.9||p[2]>0.7) continue;
-    const x=cx+p[0]*scale, y=cy-p[1]*scale;
-    if(x<0||x>w||y<0||y>h) continue;
-    ctx.fillRect(x,y,1.7,1.7); n++;
-  }
-  ctx.fillStyle="#ef4444"; ctx.beginPath(); ctx.arc(cx,cy,4,0,7); ctx.fill();
-  $("#lidar2dInfo").textContent=`${n} pts · ${Bus.hz(T.lidar).toFixed(1)} Hz`;
-}
-
-/* ======================================================= POINT CLOUD 3D */
-const PC={yaw:0.6,pitch:0.42,zoom:34,spin:true,mode:"h",drag:null,
-          zmin:12,zmax:160,home:{yaw:0.6,pitch:0.42,zoom:34}};
-function drawPC(){
-  const cv=$("#pc3d"), ctx=cv.getContext("2d"), w=cv.width, h=cv.height;
-  ctx.fillStyle="#05070d"; ctx.fillRect(0,0,w,h);
-  if(PC.spin) PC.yaw+=0.0042;
-  const cy=Math.cos(PC.yaw),sy=Math.sin(PC.yaw),cp=Math.cos(PC.pitch),sp=Math.sin(PC.pitch);
-  const pts=App.cloud, lim=App.cfg.maxPts;
-  const step=Math.max(1,Math.ceil(pts.length/lim));
-  let n=0;
-  for(let i=0;i<pts.length;i+=step){
-    const [X,Y,Z]=pts[i];
-    const x1=X*cy-Y*sy, y1=X*sy+Y*cy;
-    const y2=y1*cp-Z*sp, z2=y1*sp+Z*cp;
-    const d=z2+9; if(d<0.6) continue;
-    const f=PC.zoom*9/d;
-    const sx=w/2+x1*f, sy2=h/2-y2*f*0.62;
-    if(sx<0||sx>w||sy2<0||sy2>h) continue;
-    let hue;
-    if(PC.mode==="h") hue=clamp(280-(Z+1.2)*95,180,300);
-    else{ const r=Math.hypot(X,Y); hue=clamp(280-r*22,180,300); }
-    ctx.fillStyle=`hsl(${hue},82%,${clamp(72-d*1.4,34,72)}%)`;
-    ctx.fillRect(sx,sy2,1.5,1.5); n++;
-  }
-  $("#pcInfo").textContent=`${n} pts`;
-}
-function bindOrbit(cv,obj,onZoom){
-  cv.style.cursor="grab";
-  cv.addEventListener("pointerdown",e=>{obj.drag={x:e.clientX,y:e.clientY};cv.style.cursor="grabbing";
-    cv.setPointerCapture(e.pointerId);});
-  cv.addEventListener("pointermove",e=>{
-    if(!obj.drag) return;
-    obj.yaw+=(e.clientX-obj.drag.x)*0.0088;
-    obj.pitch=clamp(obj.pitch+(e.clientY-obj.drag.y)*0.0075,-1.35,1.35);
-    obj.drag={x:e.clientX,y:e.clientY};});
-  const up=()=>{obj.drag=null;cv.style.cursor="grab";};
-  cv.addEventListener("pointerup",up); cv.addEventListener("pointercancel",up);
-  /* Wheel zooms only with Shift held. Without this the viewport swallows
-     ordinary page scrolling whenever the cursor happens to cross a canvas,
-     and the view silently zooms itself into uselessness. */
-  cv.addEventListener("wheel",e=>{
-    if(!e.shiftKey) return;                       /* let the page scroll */
-    e.preventDefault();
-    obj.zoom=clamp(obj.zoom*(e.deltaY>0?0.9:1.1),obj.zmin||10,obj.zmax||160);
-    onZoom&&onZoom();},{passive:false});
-  cv.addEventListener("dblclick",()=>{ Object.assign(obj,obj.home); });
-}
-
-/* ============================================================== DEPTH */
-/* t = 0 (near) -> red, through yellow/green/cyan, to 1 (far) -> blue.
-   Matches the legend: ใกล้ ● แดง — ● น้ำเงิน ไกล */
-function depthColor(t){
-  const h=clamp(t,0,1)*240, c=0.95, x=c*(1-Math.abs((h/60)%2-1)), m=0.5-c/2;
-  let r,g,b;
-  if(h<60){r=c;g=x;b=0;} else if(h<120){r=x;g=c;b=0;}
-  else if(h<180){r=0;g=c;b=x;} else if(h<240){r=0;g=x;b=c;} else {r=0;g=0;b=c;}
-  return [(r+m)*255|0,(g+m)*255|0,(b+m)*255|0];
-}
-function drawDepth(){
-  const cv=$("#depth"), ctx=cv.getContext("2d"), w=cv.width, h=cv.height;
-  const img=ctx.createImageData(w,h);
-  let centre=0;
-  if(App.sim){
-    const t=Mock.t;
-    for(let y=0;y<h;y++) for(let x=0;x<w;x++){
-      const u=x/w-0.5, v=y/h-0.5;
-      /* floor plane recedes; a doorway void in the middle; a near object low-left */
-      let d = v>0.02 ? 0.55/(v+0.02) : 7.5+u*2.5;
-      if(Math.abs(u)<0.14 && v<0.06 && v>-0.30) d=7.9;                 /* far doorway */
-      if(u>-0.42&&u<-0.22&&v>0.24&&v<0.44) d=0.85+Math.sin(t)*0.05;    /* near box */
-      if(u>0.24&&u<0.46&&v>-0.06&&v<0.20) d=2.6;                       /* mid object */
-      d=clamp(d+Math.sin(x*0.09+t)*0.012,0.35,8);
-      const i=(y*w+x)*4, c=depthColor(clamp((d-0.35)/7.65,0,1));
-      img.data[i]=c[0]; img.data[i+1]=c[1]; img.data[i+2]=c[2]; img.data[i+3]=255;
-      if(Math.abs(u)<0.02&&Math.abs(v)<0.02) centre=d;
-    }
-  }else if(App.depthBuf){
-    const dw=App.depthW, dh=App.depthH, buf=App.depthBuf;
-    for(let y=0;y<h;y++){ const sy=(y*dh/h)|0;
-      for(let x=0;x<w;x++){
-        const sx=(x*dw/w)|0, mm=buf[sy*dw+sx], d=mm/1000;
-        const i=(y*w+x)*4;
-        if(!mm){ img.data[i]=img.data[i+1]=img.data[i+2]=8; img.data[i+3]=255; continue; }
-        const c=depthColor(clamp((d-0.35)/7.65,0,1));
-        img.data[i]=c[0]; img.data[i+1]=c[1]; img.data[i+2]=c[2]; img.data[i+3]=255;
-      }}
-    centre=buf[((dh/2)|0)*dw+((dw/2)|0)]/1000;
-  }else{
-    ctx.fillStyle="#05070d"; ctx.fillRect(0,0,w,h);
-    ctx.fillStyle="#3b4761"; ctx.font="13px sans-serif"; ctx.textAlign="center";
-    ctx.fillText("รอข้อมูล depth …",w/2,h/2); ctx.textAlign="left";
-    $("#depthAhead").textContent="ตรงหน้า — ม."; return;
-  }
-  ctx.putImageData(img,0,0);
-  $("#depthAhead").textContent=`ตรงหน้า ${centre.toFixed(2)} ม.`;
-}
-
-/* ================================================== ROBOT POSE (3D) */
-const RP={yaw:0.5,pitch:0.18,zoom:1,drag:null,
-          zmin:0.4,zmax:3.2,home:{yaw:0.5,pitch:0.18,zoom:1}};
-/* Segment list: [x,y,z]->[x,y,z] in metres, thickness, shade. Rebuilt per frame
-   from joint angles so gestures actually animate the figure. */
-function skeleton(t,g){
-  const sway=Math.sin(t*0.9)*0.012;
-  let lsh=-0.15, rsh=-0.15, lel=0.25, rel=0.25, hy=0, hp=0, kn=0.12, waist=0;
-  if(g){
-    const p=clamp((t-Mock.gestureT)/3.2,0,1), s=Math.sin(p*Math.PI); /* ease in/out */
-    const osc=Math.sin(p*Math.PI*6);
-    if([1001,1002,3007,3010,2001,3011].includes(g)){ rsh=-0.15-s*2.0; rel=0.25+osc*s*0.55; }
-    if(g===1003||g===1009){ rsh=-0.15-s*1.0; rel=0.25+s*0.9; }
-    if(g===3002||g===3003){ rsh=-0.15-s*1.5; rel=0.25+s*1.2; }
-    if(g===1008||g===3015){ rsh=lsh=-0.15-s*1.1; rel=lel=0.25+Math.abs(osc)*s*0.5; }
-    if(g===1013){ rsh=-0.15-s*1.6; rel=0.25+s*1.5; }
-    if(g===3001){ waist=s*0.55; }
-    if(g===3008){ rsh=lsh=-0.15-s*1.2; rel=lel=0.25+s*1.3; }
-    if(g===1004||g===3012){ rsh=-0.15-s*1.8; rel=0.25+s*1.4; }
-    if(g===3004){ rsh=lsh=-0.15-s*2.3; rel=lel=0.25+s*1.1; }
-    if(g===3006){ hp=s*0.4; rsh=-0.15-s*0.6; }
-    if(g===3016){ rsh=-0.15-s*0.9; rel=0.25+osc*s*0.3; }
-    if(g===3018||g===3019){ rsh=-0.15-s*1.4; lsh=-0.15-s*1.4; rel=lel=0.25+s*1.1; }
-    if(g===3013||g===3014){ rsh=-0.15-Math.abs(osc)*1.6; lsh=-0.15-Math.abs(-osc)*1.6;
-      waist=osc*0.22; kn=0.12+Math.abs(osc)*0.25; }
-    if(g===4001) hp=s*0.45*Math.sin(p*Math.PI*5);
-    if(g===4002) hy=s*0.6*Math.sin(p*Math.PI*5);
-    if(g===3009){ rsh=-0.15-s*1.6; lsh=-0.15-s*1.6; rel=1.4*s; lel=1.4*s; }
-  }
-  const S=[];
-  const hip=[0,0,0.82+sway], nk=[0,0,1.30+sway];
-  const wx=Math.sin(waist)*0.10;
-  const chest=[wx,0,1.16+sway];
-  /* torso */
-  S.push([hip,chest,17,.82]); S.push([chest,[wx,0,nk[2]],14,.86]);
-  /* head */
-  const hd=[wx+Math.sin(hy)*0.05,Math.sin(hp)*0.05,1.44+sway];
-  S.push([[wx,0,nk[2]],hd,9,.9]); S.push([hd,[hd[0],hd[1],hd[2]+0.10],21,.95]);
-  /* arms */
-  for(const [sgn,sh,el] of [[1,rsh,rel],[-1,lsh,lel]]){
-    const sp0=[wx+sgn*0.18,0,1.24+sway];
-    const ep=[sp0[0]+sgn*0.10,Math.sin(sh)*0.30,sp0[2]+Math.cos(sh)*-0.30];
-    const hp2=[ep[0]+sgn*0.03,ep[1]+Math.sin(sh+el)*0.28,ep[2]+Math.cos(sh+el)*-0.28];
-    S.push([sp0,ep,11,.78]); S.push([ep,hp2,9,.74]); S.push([hp2,[hp2[0],hp2[1]+0.02,hp2[2]-0.03],10,.9]);
-  }
-  /* legs */
-  for(const sgn of [1,-1]){
-    const h0=[sgn*0.10,0,0.82+sway];
-    const k=[sgn*0.10,Math.sin(kn)*0.12,0.44];
-    const f=[sgn*0.10,Math.sin(kn)*0.16,0.05];
-    S.push([h0,k,13,.7]); S.push([k,f,11,.66]);
-    S.push([f,[sgn*0.10,f[1]+0.10,0.02],9,.8]);
-  }
-  return S;
-}
-function drawPose(){
-  const cv=$("#pose"), ctx=cv.getContext("2d"), w=cv.width, h=cv.height;
-  ctx.fillStyle="#05070d"; ctx.fillRect(0,0,w,h);
-  const cy=Math.cos(RP.yaw),sy=Math.sin(RP.yaw),cp=Math.cos(RP.pitch),sp=Math.sin(RP.pitch);
-  const F=118*RP.zoom, ox=w/2, oy=h*0.80;
-  /* Orthographic: world Z stays screen-up so the figure reads as standing;
-     the yaw-rotated Y feeds a slight vertical skew plus the depth sort key. */
-  const proj=p=>{
-    const x1=p[0]*cy-p[1]*sy, y1=p[0]*sy+p[1]*cy;
-    return {x:ox+x1*F, y:oy-p[2]*F+y1*sp*0.42*F, d:y1*cp};
-  };
-  /* ground grid */
-  ctx.strokeStyle="#16233a"; ctx.lineWidth=1;
-  for(let i=-4;i<=4;i++){
-    const a=proj([i*0.4,-1.6,0]), b=proj([i*0.4,1.6,0]);
-    const c=proj([-1.6,i*0.4,0]), d=proj([1.6,i*0.4,0]);
-    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(c.x,c.y); ctx.lineTo(d.x,d.y); ctx.stroke();
-  }
-  const segs=skeleton(Mock.t,Mock.gesture)
-    .map(([a,b,t,sh])=>{const A=proj(a),B=proj(b);return {A,B,t,sh,d:(A.d+B.d)/2};})
-    .sort((p,q)=>p.d-q.d);
-  ctx.lineCap="round";
-  for(const s of segs){
-    ctx.strokeStyle=`rgba(0,0,0,.55)`; ctx.lineWidth=s.t*RP.zoom+3;
-    ctx.beginPath(); ctx.moveTo(s.A.x,s.A.y); ctx.lineTo(s.B.x,s.B.y); ctx.stroke();
-    const v=Math.round(150*s.sh+38);
-    ctx.strokeStyle=`rgb(${v},${v+5},${v+12})`; ctx.lineWidth=s.t*RP.zoom;
-    ctx.beginPath(); ctx.moveTo(s.A.x,s.A.y); ctx.lineTo(s.B.x,s.B.y); ctx.stroke();
-  }
-}
-
-/* ============================================================== IMU */
-function quatToRPY(q){
-  const {w,x,y,z}=q;
-  return {
-    roll : Math.atan2(2*(w*x+y*z),1-2*(x*x+y*y)),
-    pitch: Math.asin(clamp(2*(w*y-z*x),-1,1)),
-    yaw  : Math.atan2(2*(w*z+x*y),1-2*(y*y+z*z))
-  };
-}
-function drawHorizon(){
-  const cv=$("#horizon"), ctx=cv.getContext("2d"), w=cv.width, h=cv.height;
-  const {roll,pitch,yaw}=quatToRPY(App.imu);
-  ctx.save(); ctx.fillStyle="#05070d"; ctx.fillRect(0,0,w,h);
-  ctx.beginPath(); ctx.rect(0,0,w,h); ctx.clip();
-  ctx.translate(w/2,h/2); ctx.rotate(-roll); ctx.translate(0,pitch*220);
-  ctx.fillStyle="#0e2340"; ctx.fillRect(-w,-h*2,w*2,h*2);
-  ctx.fillStyle="#2a1d10"; ctx.fillRect(-w,0,w*2,h*2);
-  ctx.strokeStyle="#5b7fb5"; ctx.lineWidth=1.5;
-  ctx.beginPath(); ctx.moveTo(-w,0); ctx.lineTo(w,0); ctx.stroke();
-  ctx.strokeStyle="#31456a"; ctx.lineWidth=1;
-  for(let p=-30;p<=30;p+=10){ if(!p) continue; const y=p*3.9;
-    ctx.beginPath(); ctx.moveTo(-22,y); ctx.lineTo(22,y); ctx.stroke(); }
-  ctx.restore();
-  ctx.strokeStyle="#f5b942"; ctx.lineWidth=2;
-  ctx.beginPath(); ctx.moveTo(w/2-26,h/2); ctx.lineTo(w/2-8,h/2);
-  ctx.moveTo(w/2+8,h/2); ctx.lineTo(w/2+26,h/2);
-  ctx.moveTo(w/2,h/2-4); ctx.lineTo(w/2,h/2+4); ctx.stroke();
-  $("#rpy").textContent=`roll ${(roll*57.3).toFixed(1)}° · pitch ${(pitch*57.3).toFixed(1)}° · yaw ${(yaw*57.3).toFixed(1)}°`;
-}
-Bus.on(T.imu,m=>{
-  const o=m.orientation||{w:1,x:0,y:0,z:0};
-  App.imu={w:o.w,x:o.x,y:o.y,z:o.z};
-  const av=m.angular_velocity||{x:0,y:0,z:0}, la=m.linear_acceleration||{x:0,y:0,z:9.81};
-  $("#imuW").textContent=(o.w??0).toFixed(3);
-  $("#imuA").textContent=Math.hypot(av.x,av.y,av.z).toFixed(2);
-  $("#imuL").textContent=Math.hypot(la.x,la.y,la.z).toFixed(2);
-  $("#imuRaw").textContent=JSON.stringify({orientation:o,angular_velocity:av,linear_acceleration:la},
-    (k,v)=>typeof v==="number"?+v.toFixed(5):v,2);
-});
-Bus.on(T.pmu,m=>{
-  const b=m.battery_percent??m.battery_level??0, v=m.bus_48v_voltage??m.voltage??0;
-  $("#sBatt").textContent=b.toFixed(0)+"%";
-  $("#sVolt").textContent=v.toFixed(2)+" V";
-  const card=$("#battCard");
-  card.style.setProperty("--c", b<20?"var(--red)":b<40?"var(--amber)":"var(--green)");
-});
-
-/* ====================================================== LIVE DECODERS */
-function parseCloud(msg){
-  if(msg.__mock) return;
-  const f={}; (msg.fields||[]).forEach(x=>f[x.name]=x);
-  if(!f.x||!f.y||!f.z||!msg.data) return;
-  const bytes=b64bytes(msg.data);
-  const dv=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
-  const step=msg.point_step, n=(bytes.length/step)|0;
-  const stride=Math.max(1,Math.ceil(n/App.cfg.maxPts));
-  const out=[];
-  for(let i=0;i<n;i+=stride){
-    const o=i*step;
-    const x=dv.getFloat32(o+f.x.offset,true), y=dv.getFloat32(o+f.y.offset,true),
-          z=dv.getFloat32(o+f.z.offset,true);
-    if(Number.isFinite(x)&&Number.isFinite(y)&&Number.isFinite(z)) out.push([x,y,z]);
-  }
-  App.cloud=out;
-}
-Bus.on(T.lidar,parseCloud);
-Bus.on(T.depth,m=>{
-  if(App.sim||!m.data) return;
-  const bytes=b64bytes(m.data);
-  App.depthW=m.width; App.depthH=m.height;
-  /* 16UC1 is the standard depth encoding: millimetres, little-endian */
-  App.depthBuf=new Uint16Array(bytes.buffer,bytes.byteOffset,(bytes.length/2)|0);
-});
-Bus.on(T.odom,m=>{
-  if(m.__mock) return;
-  const p=m.pose?.pose?.position, q=m.pose?.pose?.orientation;
-  if(!p) return;
-  App.pose={x:p.x,y:p.y,yaw:q?quatToRPY(q).yaw:0};
-});
-
-/* ============================================================== SLAM MAP */
-function ensureGrid(){
-  if(App.mapGrid) return;
-  App.mapW=483; App.mapH=556; App.mapRes=0.05;
-  App.mapGrid=new Int8Array(App.mapW*App.mapH).fill(-1);
-}
-function splatCloudIntoMap(){
-  /* No /map topic exists on the X2, so accumulate LiDAR into an occupancy
-     grid in the odom frame - this is the live "map while exploring" view. */
-  ensureGrid();
-  const {x:rx,y:ry,yaw}=App.pose, c=Math.cos(yaw), s=Math.sin(yaw);
-  const cx=App.mapW/2, cy=App.mapH/2, k=1/App.mapRes;
-  for(const p of App.cloud){
-    if(p[2]<-0.9||p[2]>0.8) continue;
-    const wx=rx+p[0]*c-p[1]*s, wy=ry+p[0]*s+p[1]*c;
-    const gx=(cx+wx*k)|0, gy=(cy-wy*k)|0;
-    if(gx<1||gy<1||gx>=App.mapW-1||gy>=App.mapH-1) continue;
-    App.mapGrid[gy*App.mapW+gx]=100;
-    /* carve free space along the ray, cheaply */
-    for(let t=0.3;t<0.95;t+=0.14){
-      const fx=(cx+(rx+(wx-rx)*t)*k)|0, fy=(cy-(ry+(wy-ry)*t)*k)|0;
-      if(fx>0&&fy>0&&fx<App.mapW&&fy<App.mapH && App.mapGrid[fy*App.mapW+fx]===-1)
-        App.mapGrid[fy*App.mapW+fx]=0;
-    }
-  }
-}
-function drawMap(){
-  const cv=$("#map"), ctx=cv.getContext("2d"), w=cv.width, h=cv.height;
-  ctx.fillStyle="#141a26"; ctx.fillRect(0,0,w,h);
-  if(!$("#mapShow").checked || !App.mapGrid){
-    ctx.fillStyle="#3b4761"; ctx.font="13px sans-serif"; ctx.textAlign="center";
-    ctx.fillText(App.mapGrid?"ปิดการแสดงแผนที่":"ยังไม่มีแผนที่ — กด “เริ่มสร้างแผนที่”",w/2,h/2);
-    ctx.textAlign="left"; $("#mapInfo").textContent="— × — · — ม./ช่อง"; return;
-  }
-  const sc=Math.min(w/App.mapW,h/App.mapH);
-  const ox=(w-App.mapW*sc)/2, oy=(h-App.mapH*sc)/2;
-  const img=ctx.createImageData(App.mapW,App.mapH);
-  for(let i=0;i<App.mapGrid.length;i++){
-    const v=App.mapGrid[i], o=i*4;
-    if(v===100){ img.data[o]=45; img.data[o+1]=252; img.data[o+2]=140; }
-    else if(v===0){ img.data[o]=20; img.data[o+1]=26; img.data[o+2]=38; }
-    else { img.data[o]=32; img.data[o+1]=40; img.data[o+2]=56; }
-    img.data[o+3]=255;
-  }
-  const tmp=document.createElement("canvas"); tmp.width=App.mapW; tmp.height=App.mapH;
-  tmp.getContext("2d").putImageData(img,0,0);
-  ctx.imageSmoothingEnabled=false;
-  ctx.drawImage(tmp,ox,oy,App.mapW*sc,App.mapH*sc);
-  /* robot marker */
-  const rx=ox+(App.mapW/2+App.pose.x/App.mapRes)*sc, ry=oy+(App.mapH/2-App.pose.y/App.mapRes)*sc;
-  ctx.fillStyle="#ef4444"; ctx.beginPath(); ctx.arc(rx,ry,5,0,7); ctx.fill();
-  ctx.strokeStyle="#ef4444"; ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(rx,ry);
-  ctx.lineTo(rx+Math.cos(-App.pose.yaw)*15,ry+Math.sin(-App.pose.yaw)*15); ctx.stroke();
-  $("#mapInfo").textContent=`${App.mapW}×${App.mapH} · ${App.mapRes} ม./ช่อง`+
-    (App.mapping?" · ● กำลังสร้าง":"");
-}
-
-/* ========================================================= COMMANDING */
-function guardMotion(){
-  if(App.estop){ toast("ระบบหยุดฉุกเฉินทำงานอยู่","err"); return false; }
-  if(!App.motion){ toast("เปิดสวิตช์ “อนุญาตให้หุ่นยนต์เคลื่อนไหว” ก่อน","err"); return false; }
-  return true;
-}
-async function callSvc(name,type,args,label){
-  log(`→ ${label} · ${name}`,"i");
-  if(App.sim){ await new Promise(r=>setTimeout(r,180));
-    log(`✓ ${label} (จำลอง)`,"s"); return {__sim:true}; }
-  try{ const r=await ros.call(name,type,args); log(`✓ ${label}`,"s"); return r; }
-  catch(e){ log(`✗ ${label}: ${e?.message||JSON.stringify(e)}`,"e");
-    toast(label+" ล้มเหลว","err"); throw e; }
-}
-function flash(btn){ btn.classList.add("sent"); setTimeout(()=>btn.classList.remove("sent"),650); }
-
-function buildButtons(){
-  const mk=(list,host,fn)=>{
-    const box=$(host); box.innerHTML="";
-    list.forEach(([label,id])=>{
-      const b=document.createElement("button"); b.className="ab"; b.textContent=label;
-      b.dataset.id=id; b.onclick=()=>fn(id,b,label); box.appendChild(b);
-    });
-  };
-  const preset=(id,btn,label)=>{
-    if(!guardMotion()) return;
-    flash(btn); if(App.sim) Mock.playGesture(id);
-    /* area: head motions target HEAD(4), everything else RIGHT_HAND(2) */
-    const area=id>=4000?4:2;
-    callSvc(S.preset,"aimdk_msgs/srv/SetMcPresetMotion",
-      {header:{},motion:{value:id},area:{value:area},interrupt:false},
-      `ท่าทาง ${label} (motion=${id}, area=${area})`).catch(()=>{});
-  };
-  mk(ARM,"#gArm",preset);
-  mk(HEAD,"#gHead",preset);
-  mk(FACE,"#gFace",(id,btn,label)=>{
-    flash(btn);   /* faces are screen-only: no motion guard needed */
-    callSvc(S.emoji,"aimdk_msgs/srv/PlayEmoji",
-      {emotion_id:id,mode:1,priority:10},`สีหน้า ${label} (id=${id})`).catch(()=>{});
-  });
-}
-$("#poBtn").onclick=e=>{
-  if(!guardMotion()) return;
-  const color=$("#poColor").value, arm=+$("#poArm").value;
-  flash(e.target);
-  log(`→ ชี้วัตถุสี ${color} ด้วย ${arm===2?"แขนขวา":"แขนซ้าย"}`,"i");
-  log("   ต้องมี node ตรวจจับสี+depth ฝั่งหุ่นยนต์ — SDK ไม่มีให้","w");
-  if(App.sim){ Mock.playGesture(1001); toast("จำลอง: ชี้วัตถุสี"+color); }
-  else toast("ยังไม่มี node ตรวจจับวัตถุ — ดู README","err");
-};
-
-/* ---------------- SLAM buttons (std_msgs/String on /integrated_command) */
-$("#mapStart").onclick=()=>{
-  App.mapping=true; ensureGrid();
-  if(App.sim){ log("→ start_mapping (จำลอง)","s"); toast("เริ่มสร้างแผนที่"); return; }
-  ros.advertise(T.slamCmd,"std_msgs/String");
-  ros.publish(T.slamCmd,{data:"start_mapping"});
-  log("→ /integrated_command : start_mapping","s");
-};
-$("#mapStop").onclick=()=>{
-  App.mapping=false;
-  const nm=$("#mapName").value.trim()||"map";
-  if(App.sim){ log(`→ stop_mapping:${nm} (จำลอง)`,"s"); toast("บันทึกแผนที่ "+nm); return; }
-  ros.advertise(T.slamCmd,"std_msgs/String");
-  ros.publish(T.slamCmd,{data:"stop_mapping:"+nm});
-  log(`→ /integrated_command : stop_mapping:${nm}`,"s");
-};
-$("#mapLoad").onclick=async()=>{
-  const nm=$("#mapName").value.trim()||"map";
-  try{
-    const r=await callSvc(S.getMap,"aimdk_msgs/srv/GetStoredMapByName",
-      {header:{},map_name:nm},`ดึงแผนที่ ${nm}`);
-    if(r&&r.map_info){
-      App.mapW=r.map_info.width; App.mapH=r.map_info.height; App.mapRes=r.map_info.resolution;
-      App.mapGrid=new Int8Array(App.mapW*App.mapH).fill(-1);
-      log(`   map_id=${r.map_id} path=${r.map_path}`,"s");
-      log("   หมายเหตุ: service คืนเฉพาะ metadata + path — ไม่มี grid ให้วาด","w");
-    }
-  }catch{}
-};
-
-/* ---------------- Voice agent */
-function addMsg(text,who){
-  const c=$("#chat"); const ph=c.querySelector(".ph"); if(ph) ph.remove();
-  const d=document.createElement("div"); d.className="msg "+who; d.textContent=text;
-  c.appendChild(d); c.scrollTop=c.scrollHeight;
-}
-function localAnswer(q){
-  /* Answers grounded in live telemetry - no LLM needed for these. */
-  const near=App.cloud.filter(p=>p[2]>-0.85&&p[2]<0.7&&Math.abs(Math.atan2(p[1],p[0]))<0.52)
-    .map(p=>Math.hypot(p[0],p[1]));
-  const d=near.length?Math.min(...near):Infinity;
-  if(/ข้างหน้า|อะไร|มีอะไร/.test(q))
-    return d<50?`ตรวจพบวัตถุใกล้สุดด้านหน้าที่ระยะ ${d.toFixed(2)} เมตร (จาก LiDAR ${App.cloud.length} จุด)`
-               :"ด้านหน้าโล่ง ไม่พบสิ่งกีดขวางในระยะ LiDAR";
-  if(/แบต|battery/i.test(q)) return `แบตเตอรี่ ${$("#sBatt").textContent} · ${$("#sVolt").textContent}`;
-  if(/โหมด|mode/i.test(q)) return `โหมดปัจจุบัน: ${$("#sMode").textContent}`;
-  if(/เดินหน้า|เดิน|ไปข้างหน้า/.test(q))
-    return App.motion?"SDK ไม่มี navigation stack — ต้องใช้ x2_nav_test (T5) สั่ง waypoint แทน"
-                     :"ต้องเปิดสวิตช์ “อนุญาตให้หุ่นยนต์เคลื่อนไหว” ก่อน";
-  return null;
-}
-async function sendChat(){
-  const q=$("#chatIn").value.trim(); if(!q) return;
-  $("#chatIn").value=""; addMsg(q,"u");
-  const local=localAnswer(q);
-  if(local){ addMsg(local,"r"); }
-  else{
-    addMsg("ส่งข้อความไปพูดผ่านลำโพงหุ่นยนต์ (PlayTts)","r");
-  }
-  try{
-    await callSvc(S.tts,"aimdk_msgs/srv/PlayTts",
-      {header:{},tts_req:{text:local||q,domain:"dashboard",trace_id:"web",
-        is_interrupted:true,priority_weight:0,priority_level:{value:6}}},"พูด (TTS)");
-  }catch{}
-}
-$("#chatSend").onclick=sendChat;
-$("#chatIn").addEventListener("keydown",e=>{ if(e.key==="Enter") sendChat(); });
-
-/* ========================================================== DISCOVERY */
-const BOUND=new Set(Object.values(T));
-async function discover(){
-  if(App.sim){
-    App.discovered=Object.entries(T).map(([k,v])=>({name:v,type:"(จำลอง)"}));
-    renderDisc(); return;
-  }
-  try{
-    const r=await ros.topics();
-    App.discovered=(r.topics||[]).map((n,i)=>({name:n,type:(r.types||[])[i]||"?"}))
-      .sort((a,b)=>a.name.localeCompare(b.name));
-    log(`ตรวจพบ ${App.discovered.length} topics`,"s");
-    renderDisc();
-    /* Auto-subscribe to everything the dashboard knows how to render */
-    autoSubscribe();
-    $("#discModal").classList.add("on");
-  }catch(e){ log("ดึงรายการ topic ไม่สำเร็จ: "+(e?.message||e),"e"); }
-}
-function autoSubscribe(){
-  const have=new Set(App.discovered.map(d=>d.name));
-  const typeOf=n=>(App.discovered.find(d=>d.name===n)||{}).type;
-  const want=[
-    [T.camRGB,300],[T.camCenter,300],[T.camRear,300],[T.camSL,400],[T.camSR,400],
-    [T.depth,200],[T.lidar,150],[T.imu,100],[T.pmu,1000],[T.odom,100],
-  ];
-  let n=0;
-  for(const [topic,thr] of want){
-    if(!have.has(topic)) continue;
-    ros.subscribe(topic,typeOf(topic),Math.max(thr,App.cfg.throttle)); n++;
-  }
-  log(`สมัครรับข้อมูล ${n} topics`,"s");
-  toast(`เชื่อมต่อแล้ว · ${n} topics`,"ok");
-}
-function renderDisc(){
-  const f=$("#discFilter").value.toLowerCase();
-  const rows=App.discovered.filter(d=>!f||d.name.toLowerCase().includes(f)||
-    (d.type||"").toLowerCase().includes(f));
-  $("#discCount").textContent=App.discovered.length;
-  $("#discBody").innerHTML=rows.map(d=>{
-    const hz=Bus.hz(d.name), used=BOUND.has(d.name);
-    return `<tr><td class="m">${d.name}</td><td class="m" style="color:var(--tx3)">${d.type}</td>
-      <td class="m" style="color:${hz>0?"var(--green)":"var(--tx3)"}">${hz>0?hz.toFixed(1):"—"}</td>
-      <td>${used?'<span class="tag ok">ผูกแล้ว</span>':'<span class="tag">—</span>'}</td></tr>`;
-  }).join("")||`<tr><td colspan="4" style="color:var(--tx3);padding:16px">ไม่พบ</td></tr>`;
-}
-$("#discFilter").addEventListener("input",renderDisc);
-$("#discRefresh").onclick=discover;
-
-/* ============================================================ WIRING */
-function setSim(on){
-  App.sim=on;
-  $("#simSw").checked=on;
-  if(on){ ros.close(); setConn("โหมดจำลอง","warn"); $("#sMode").textContent="PASSIVE_DEFAULT";
-    log("เข้าสู่โหมดจำลอง","w"); discover(); }
-  else{ setConn("ยังไม่เชื่อมต่อ","bad"); log("ออกจากโหมดจำลอง — กด ตั้งค่า → เชื่อมต่อ","w"); connect(); }
-}
-function setConn(text,kind){
-  $("#sConn").textContent=text;
-  const c=kind==="ok"?"var(--green)":kind==="warn"?"var(--amber)":"var(--red)";
-  $("#sConn").closest(".stat").style.setProperty("--c",c);
-}
-function connect(){
-  App.cfg.url=$("#cfgUrl").value.trim();
-  App.cfg.throttle=+$("#cfgThrottle").value||100;
-  App.cfg.maxPts=+$("#cfgMaxPts").value||14000;
-  setConn("กำลังเชื่อมต่อ…","warn");
-  ros.connect(App.cfg.url);
-}
-ros.onstate=(ok)=>{
-  if(ok){ setConn("เชื่อมต่อแล้ว","ok"); discover(); readMode(); }
-  else if(!App.sim) setConn("ขาดการเชื่อมต่อ","bad");
-};
-async function readMode(){
-  try{ const r=await ros.call(S.getAction,"aimdk_msgs/srv/GetMcAction",{request:{}});
-    $("#sMode").textContent=r?.info?.action_desc||"UNKNOWN"; }catch{}
-}
-$("#simSw").onchange=e=>setSim(e.target.checked);
-$("#topicsBtn").onclick=()=>{ renderDisc(); $("#discModal").classList.add("on"); };
-$("#setBtn").onclick=()=>$("#setModal").classList.add("on");
-$("#cfgConnect").onclick=()=>{ setSim(false); connect(); $("#setModal").classList.remove("on"); };
-$("#cfgDisconnect").onclick=()=>{ ros.close(); setConn("ตัดการเชื่อมต่อแล้ว","bad"); };
-$$("[data-close]").forEach(b=>b.onclick=()=>b.closest(".modal").classList.remove("on"));
-$$(".modal").forEach(m=>m.onclick=e=>{ if(e.target===m) m.classList.remove("on"); });
-document.addEventListener("keydown",e=>{ if(e.key==="Escape") $$(".modal").forEach(m=>m.classList.remove("on")); });
-
-$("#motionSw").onchange=e=>{
-  if(App.estop && e.target.checked){ e.target.checked=false; toast("ปลดล็อก E-STOP ก่อน","err"); return; }
-  App.motion=e.target.checked;
-  $("#motionHint").textContent=App.motion
-    ? "⚠️ ปลดล็อกแล้ว — หุ่นยนต์เคลื่อนไหวได้"
-    : "ระบบล็อกการเคลื่อนไหวเพื่อความปลอดภัย";
-  $("#motionHint").style.color=App.motion?"var(--amber)":"var(--tx3)";
-  log(App.motion?"ปลดล็อกการเคลื่อนไหว":"ล็อกการเคลื่อนไหว",App.motion?"w":"i");
-};
-$("#estopBtn").onclick=()=>{
-  App.estop=!App.estop;
-  document.body.classList.toggle("estopped",App.estop);
-  $("#estopBtn").classList.toggle("on",App.estop);
-  $("#estopBtn").textContent=App.estop?"● ปลดล็อก E-STOP":"● หยุดฉุกเฉิน";
-  if(App.estop){
-    App.motion=false; $("#motionSw").checked=false;
-    $("#motionHint").textContent="🛑 หยุดฉุกเฉิน";
-    log("E-STOP — ส่งความเร็วศูนย์","e"); toast("หยุดฉุกเฉิน","err");
-    if(!App.sim){
-      ros.advertise(T.vel,"aimdk_msgs/msg/McLocomotionVelocity");
-      for(let i=0;i<12;i++) setTimeout(()=>ros.publish(T.vel,
-        {forward_velocity:0,lateral_velocity:0,angular_velocity:0}),i*40);
-    }
-  }else{ $("#motionHint").textContent="ระบบล็อกการเคลื่อนไหวเพื่อความปลอดภัย"; log("ปลดล็อก E-STOP","w"); }
-};
-$("#pcH").onclick=()=>{PC.mode="h";$("#pcH").classList.add("on");$("#pcR").classList.remove("on");};
-$("#pcR").onclick=()=>{PC.mode="r";$("#pcR").classList.add("on");$("#pcH").classList.remove("on");};
-$("#pcSpin").onchange=e=>PC.spin=e.target.checked;
-$("#themeBtn").onclick=()=>{
-  const l=document.documentElement.getAttribute("data-theme")==="light";
-  document.documentElement.setAttribute("data-theme",l?"dark":"light");
-  $("#themeBtn").textContent=l?"☀️":"🌙";
-};
-
-/* ============================================================== LOOP */
-let last=now(), mapAcc=0;
-function frame(){
-  const t=now(), dt=Math.min(t-last,0.1); last=t;
-  if(App.sim) Mock.tick(dt);
-  tickCams(dt); tickBigCam();
-  drawLidar2D(); drawPC(); drawDepth(); drawPose(); drawHorizon();
-  if(App.mapping){ mapAcc+=dt; if(mapAcc>0.25){ mapAcc=0; splatCloudIntoMap(); } }
-  drawMap();
-  requestAnimationFrame(frame);
-}
-setInterval(()=>{ $("#clock").textContent=new Date().toTimeString().slice(0,8); },1000);
-setInterval(()=>{ if($("#discModal").classList.contains("on")) renderDisc(); },1200);
-
-/* ============================================================== BOOT */
-Mock.init();
-buildCams();
-buildButtons();
-bindOrbit($("#pc3d"),PC);
-bindOrbit($("#pose"),RP);
-$("#camCount").textContent=CAMS.length+" มุมมอง";
-log("X2 Command Center พร้อมใช้งาน","s");
-log("โหมดจำลอง: ทุกแผงทำงานได้โดยไม่ต้องต่อหุ่นยนต์","i");
-setSim(true);
-frame();
-</script>
+<!-- Classic scripts, deliberately not ES modules: modules are blocked over
+     file://, and opening this file by double-clicking has to keep working.
+     Load order is the dependency order. -->
+<script src="js/config.js"></script>
+<script src="js/core.js"></script>
+<script src="js/rosbridge.js"></script>
+<script src="js/mock.js"></script>
+<script src="js/panels-camera.js"></script>
+<script src="js/panels-lidar.js"></script>
+<script src="js/panels-depth.js"></script>
+<script src="js/panels-pose.js"></script>
+<script src="js/panels-imu.js"></script>
+<script src="js/panels-slam.js"></script>
+<script src="js/commanding.js"></script>
+<script src="js/discovery.js"></script>
+<script src="js/guide-data.js"></script>
+<script src="js/guide.js"></script>
+<script src="js/demo.js"></script>
+<script src="js/tabs.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>

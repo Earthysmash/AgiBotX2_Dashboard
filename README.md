@@ -1,24 +1,36 @@
 # X2 Command Center
 
-Single-file control dashboard for the **AgiBot X2 Ultra** humanoid.
+Control dashboard for the **AgiBot X2 Ultra** humanoid.
 No build step, no npm, no CDN — clone and open
 [`x2_command_center.html`](x2_command_center.html) in a browser.
 
-It boots in **โหมดจำลอง (simulation)**, so every panel — cameras, LiDAR,
-depth, IMU, pose, SLAM — works with no robot attached. Flip the toggle and
-point it at `rosbridge` to go live.
+It boots straight into **live mode** and starts looking for the robot. If
+nothing answers, the page says so and points you at the setup guide rather
+than sitting there looking broken.
 
 Built against **AIMDK v1.0.0-ga424add**. Service payloads and preset-motion
 IDs are taken verbatim from the SDK's message definitions.
 
-## Two modes
+## Three tabs
 
-**โหมดจำลอง (simulation)** — the default. A procedural engine drives every
-panel: cameras, LiDAR, depth, IMU, pose, SLAM. Nothing needs to be connected.
-Use this to check the UI and rehearse the workflow before you have SSH.
+**🤖 ใช้งานจริง · Live robot** — the default. Talks to the real X2 over
+rosbridge. Retries every 10 seconds while disconnected, so plugging the cable
+in is enough to bring it up; no reload needed.
 
-**Live** — turn the simulation toggle off and connect. The page speaks
-rosbridge v2 over WebSocket.
+**🎬 โหมดสาธิต · Demo** — a guided walkthrough of every sensor, driven by a
+procedural engine. Each panel sits next to a short explanation of what the
+sensor is and what you are looking at. Nothing needs to be connected, and no
+command leaves the page. Use it to learn the dashboard before touching
+hardware, or to demo the robot's capabilities without the robot.
+
+**📖 วิธีเชื่อมต่อ · Setup guide** — step by step from "plug in the cable" to
+"read the topic list", in Thai and English side by side, written for someone
+who has never used SSH. Type your robot's IP and username once at the top and
+every command on the page rewrites itself to match. Every command has a copy
+button.
+
+Tabs are linkable (`#live`, `#demo`, `#guide`) and switchable with
+<kbd>Alt</kbd>+<kbd>1</kbd>/<kbd>2</kbd>/<kbd>3</kbd>.
 
 ## Live mode needs rosbridge
 
@@ -36,6 +48,7 @@ ros2 launch rosbridge_server rosbridge_websocket_launch.xml
 ```
 
 Then in the dashboard: **ตั้งค่า → URL** `ws://10.0.1.41:9090` → **เชื่อมต่อ**.
+Or open the setup guide, type the IP, and press the green auto-fill button.
 
 On success the page calls `/rosapi/topics`, auto-subscribes to every endpoint
 it knows how to render, and **opens the topic list automatically**. The 🔍
@@ -44,12 +57,39 @@ the dashboard has bound.
 
 ## Serving the file
 
-`file://` works for simulation mode. Some browsers restrict WebSockets from
-`file://`, so for live mode serve it:
+`file://` works — the code is deliberately split into plain `<script>` tags
+rather than ES modules, so double-clicking the HTML still works. Some browsers
+restrict WebSockets from `file://`, so for live mode you may need to serve it:
 
 ```bash
-python3 -m http.server 8777 --directory /path/to/dashboard
+python3 -m http.server 8777
 ```
+
+A page served over `https://` cannot open a plain `ws://` socket. Serve over
+`http://` or open the file locally.
+
+## Layout
+
+```
+x2_command_center.html    markup + script tags only
+css/theme.css             tokens, base elements, modals, toasts
+css/dashboard.css         the telemetry panels
+css/pages.css             tab shell, demo walkthrough, setup guide
+js/config.js              topics, services, motion + emoji IDs
+js/core.js                state, DOM helpers, the event bus, prefs
+js/rosbridge.js           rosbridge v2 client
+js/mock.js                procedural engine behind the demo
+js/panels-*.js            camera, lidar, depth, pose, imu, slam renderers
+js/commanding.js          everything that sends to the robot
+js/discovery.js           topic list
+js/guide-data.js          the setup guide, as bilingual data
+js/guide.js               guide renderer
+js/demo.js                demo walkthrough
+js/tabs.js                the three-way mode switch
+js/app.js                 connection lifecycle, render loop, boot
+```
+
+Load order in the HTML is the dependency order.
 
 ## Panels
 
@@ -76,6 +116,9 @@ Three interlocks, all verified:
    `/aima/mc/locomotion/velocity`.
 3. Facial expressions bypass the motion gate — they are screen-only.
 
+The demo tab enforces the same interlocks, so rehearsing there teaches the
+real workflow.
+
 ## Known limits
 
 - **`GetStoredMapByName` returns metadata and a file path, not grid data.**
@@ -92,5 +135,7 @@ Three interlocks, all verified:
 - **Preset-motion area is inferred**: head motions (4xxx) → `HEAD(4)`,
   everything else → `RIGHT_HAND(2)`. Some two-handed motions may want
   `LEFT_HAND(1)` as well.
+- The robot pose figure only animates in the demo. In live mode joint state is
+  not yet decoded, so the figure stands still.
 - Live mode is **untested against real hardware** — no SSH access yet. The
   simulation path and every service payload have been verified offline.
