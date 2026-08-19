@@ -40,6 +40,9 @@ function b64bytes(b64){
 const App = {
   /* sim is derived from the active tab now, not from a header switch */
   sim:false, motion:false, estop:false, tab:"live",
+  /* "auto" follows the tab — dark for the instruments, light for the guide,
+     which is a document and reads better on white. "dark"/"light" pin it. */
+  themeMode:"auto",
   cfg:{url:DEFAULTS.url, throttle:DEFAULTS.throttle, maxPts:DEFAULTS.maxPts,
        ip:DEFAULTS.ip, user:DEFAULTS.user, autoRetry:true},
   cloud:[], depthBuf:null, depthW:0, depthH:0,
@@ -92,7 +95,7 @@ const Prefs = {
       if(p.url)   App.cfg.url  = p.url;
       if(p.ip)    App.cfg.ip   = p.ip;
       if(p.user)  App.cfg.user = p.user;
-      if(p.theme) document.documentElement.setAttribute("data-theme",p.theme);
+      if(p.theme) App.themeMode = p.theme;
       if(p.lang)  document.body.setAttribute("data-lang",p.lang);
       if(typeof p.autoRetry === "boolean") App.cfg.autoRetry = p.autoRetry;
     }catch{ /* corrupt or blocked storage is not worth failing boot over */ }
@@ -101,7 +104,7 @@ const Prefs = {
     try{
       localStorage.setItem(this.key, JSON.stringify({
         url:App.cfg.url, ip:App.cfg.ip, user:App.cfg.user, autoRetry:App.cfg.autoRetry,
-        theme:document.documentElement.getAttribute("data-theme") || "dark",
+        theme:App.themeMode,
         lang:document.body.getAttribute("data-lang") || "both",
       }));
     }catch{}

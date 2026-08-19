@@ -33,8 +33,11 @@ const Tabs = {
 
     $$(".tab").forEach(b=>b.classList.toggle("on",b.dataset.tab===name));
     $$(".pane").forEach(p=>p.classList.toggle("on",p.id==="pane-"+name));
-    /* Status cards and the motion bar mean nothing on the guide. */
+    /* The status rail and KPI strip mean nothing on the guide. */
     $("#chrome").style.display = name==="guide" ? "none" : "";
+
+    /* In auto mode the guide reads on white and the instruments on dark. */
+    applyTheme();
 
     if(sim){
       setConn("โหมดสาธิต · demo","warn");

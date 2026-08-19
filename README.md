@@ -91,6 +91,35 @@ js/app.js                 connection lifecycle, render loop, boot
 
 Load order in the HTML is the dependency order.
 
+## Design system
+
+Two type scales share one set of tokens, because this repo holds two different
+kinds of page.
+
+| | Live tab | Guide + Demo tabs |
+|---|---|---|
+| Scale | `--fs-*` — 13–15px, dense | `--ed-*` — 19px/1.7 |
+| Measure | full width | `--ed-measure`, ~57 chars |
+| Separation | cards and borders | `--ed-gap` rhythm, no cards |
+| Default theme | dark | light (guide only) |
+
+The Live tab is a control surface scanned at a glance while the robot is
+moving; the other two are documents read top to bottom. Applying the editorial
+scale to the instruments would fit about two panels on screen — so it stays
+where it belongs.
+
+Palette is adapted from the KKP Better article layout: one violet accent
+(`--blue`, shifted cooler and deeper than KKP's `#7A5DFF`), a lime signal
+(`--lime`) used only for "live", pill radii (`--rp`), and a shadow with no
+offset. Semantic colours (`--green` / `--amber` / `--red`) are deliberately
+**separate from the accent**, so an E-stop can never read as a branded button.
+
+Theme is three-state: `auto` follows the tab, `light` and `dark` pin it. The
+button in the header cycles them. All text passes WCAG AA (4.5:1) in both.
+
+Token *names* are stable — every panel stylesheet and all 17 JS modules
+reference them, so re-theming means changing values in `css/theme.css` only.
+
 ## Panels
 
 | Panel | Source | Notes |

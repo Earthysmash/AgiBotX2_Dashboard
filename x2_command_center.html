@@ -35,24 +35,35 @@
 
 <div class="wrap">
 
-  <!-- Shared across Live and Demo; hidden on the guide. -->
+  <!-- Shared across Live and Demo; hidden on the guide.
+
+       One sticky rail instead of four stat cards. Mode and battery were the
+       only things ever read off those cards, and the E-stop used to scroll
+       off the top of the page with everything else. -->
   <div id="chrome">
-    <div class="stats">
-      <div class="stat" style="--c:var(--green)"><div class="ic">📡</div>
-        <div><b>การเชื่อมต่อ</b><u id="sConn">กำลังเชื่อมต่อ…</u></div></div>
-      <div class="stat" style="--c:var(--green)" id="battCard"><div class="ic">🔋</div>
-        <div><b>แบตเตอรี่</b><u id="sBatt">--%</u></div></div>
-      <div class="stat" style="--c:var(--cyan)"><div class="ic">⚡</div>
-        <div><b>แรงดันไฟ</b><u id="sVolt">-- V</u></div></div>
-      <div class="stat" style="--c:var(--purple)"><div class="ic">🎛</div>
-        <div><b>โหมดทำงาน</b><u class="sm" id="sMode">UNKNOWN</u></div></div>
+    <div class="srail">
+      <span class="spill" id="sConn">กำลังเชื่อมต่อ…</span>
+      <span class="sdiv"></span>
+      <span class="sfact"><b>โหมด</b><u class="m" id="sMode">UNKNOWN</u></span>
+      <span class="sdiv"></span>
+      <span class="sfact"><b>แบต</b><u id="sBatt">--%</u></span>
+      <span class="sfact"><u id="sVolt">-- V</u></span>
+      <span class="sdiv"></span>
+      <span class="sfact"><b>topics</b><u id="sTopics">—</u></span>
+      <span class="sp"></span>
+      <label class="sw"><input type="checkbox" id="motionSw"><i></i>
+        <span>อนุญาตให้เคลื่อนไหว</span></label>
+      <span class="mhint" id="motionHint">ระบบล็อกเพื่อความปลอดภัย</span>
+      <button class="estop" id="estopBtn">● หยุดฉุกเฉิน</button>
     </div>
 
-    <div class="mbar">
-      <label class="sw"><input type="checkbox" id="motionSw"><i></i>
-        <span>อนุญาตให้หุ่นยนต์เคลื่อนไหว</span></label>
-      <span class="hint" id="motionHint">ระบบล็อกการเคลื่อนไหวเพื่อความปลอดภัย</span>
-      <button class="estop" id="estopBtn">● หยุดฉุกเฉิน</button>
+    <!-- The four numbers actually watched while the robot moves. Every one is
+         derived from data already arriving — none is a placeholder. -->
+    <div class="kpis">
+      <div class="kpi idle" id="kClear"><b>ระยะโล่งด้านหน้า</b><u>—<small>ม.</small></u></div>
+      <div class="kpi idle" id="kLidar"><b>LiDAR</b><u>—<small>Hz</small></u></div>
+      <div class="kpi idle" id="kPts"><b>จุดต่อเฟรม</b><u>—</u></div>
+      <div class="kpi idle" id="kPose"><b>ตำแหน่ง x, y</b><u>—</u></div>
     </div>
   </div>
 
@@ -124,29 +135,6 @@
     </div>
 
     <div class="card">
-      <h3>การโต้ตอบ<span class="tag">กดเพื่อสั่งหุ่น</span></h3>
-      <div class="body">
-        <div class="grp"><b>ท่าทาง (มือ/แขน) <i>(ต้องเปิดสวิตช์เคลื่อนไหว)</i></b>
-          <div class="btns" id="gArm"></div></div>
-        <div class="grp"><b>ท่าทาง (หัว) <i>(ต้องเปิดสวิตช์เคลื่อนไหว)</i></b>
-          <div class="btns" id="gHead"></div></div>
-        <div class="grp"><b>สีหน้า <i>(แสดงบนจอ)</i></b>
-          <div class="btns" id="gFace"></div></div>
-        <div class="grp"><b>ชี้ที่วัตถุตามสี
-          <i>(ต้องเปิดสวิตช์เคลื่อนไหว — คำนวณตำแหน่ง 3 มิติจริงจากกล้อง+depth+lidar)</i></b>
-          <div class="row">
-            <select id="poColor">
-              <option value="red">แดง</option><option value="green">เขียว</option>
-              <option value="blue">น้ำเงิน</option><option value="yellow">เหลือง</option>
-            </select>
-            <select id="poArm"><option value="2">แขนขวา</option><option value="1">แขนซ้าย</option></select>
-            <button class="ab" id="poBtn">👉 ชี้ที่วัตถุ</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
       <h3>แผนที่ (SLAM)<span class="tag">สร้างแผนที่ขณะเดินสำรวจ</span></h3>
       <div class="body">
         <div class="row" style="margin-bottom:9px">
@@ -194,6 +182,32 @@
         <canvas id="pose" width="440" height="320"></canvas>
         <div class="ov">ลาก = หมุน · Shift+ล้อ = ซูม · โมเดลจาก URDF ทรงกระบอก AgiBot</div>
       </div></div>
+    </div>
+
+    <!-- Controls live in this column, telemetry in the other. Previously the
+         interaction panel sat between the depth view and the SLAM map, so
+         buttons and readouts competed for the same eye path. -->
+    <div class="card">
+      <h3>การโต้ตอบ<span class="tag">กดเพื่อสั่งหุ่น</span></h3>
+      <div class="body">
+        <div class="grp"><b>ท่าทาง (มือ/แขน) <i>(ต้องเปิดสวิตช์เคลื่อนไหว)</i></b>
+          <div class="btns" id="gArm"></div></div>
+        <div class="grp"><b>ท่าทาง (หัว) <i>(ต้องเปิดสวิตช์เคลื่อนไหว)</i></b>
+          <div class="btns" id="gHead"></div></div>
+        <div class="grp"><b>สีหน้า <i>(แสดงบนจอ)</i></b>
+          <div class="btns" id="gFace"></div></div>
+        <div class="grp"><b>ชี้ที่วัตถุตามสี
+          <i>(ต้องเปิดสวิตช์เคลื่อนไหว — คำนวณตำแหน่ง 3 มิติจริงจากกล้อง+depth+lidar)</i></b>
+          <div class="row">
+            <select id="poColor">
+              <option value="red">แดง</option><option value="green">เขียว</option>
+              <option value="blue">น้ำเงิน</option><option value="yellow">เหลือง</option>
+            </select>
+            <select id="poArm"><option value="2">แขนขวา</option><option value="1">แขนซ้าย</option></select>
+            <button class="ab" id="poBtn">👉 ชี้ที่วัตถุ</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="card">

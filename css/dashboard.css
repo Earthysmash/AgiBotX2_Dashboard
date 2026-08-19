@@ -1,49 +1,100 @@
 /* ============================================================================
    dashboard.css — the telemetry panels themselves. Shared by the Live tab and
    the Demo tab, since the demo reuses the same panel chrome.
+
+   Console density: the Live tab is scanned while a 42 kg humanoid is walking,
+   so this file deliberately does NOT inherit the editorial scale used on the
+   Guide and Demo prose. Summary first (status rail, KPI strip), detail below.
    ========================================================================= */
 
-/* ------------------------------------------------------------------ STATUS */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin-bottom:11px}
-.stat{
-  display:flex;align-items:center;gap:12px;padding:13px 15px;
-  background:var(--card);border:1px solid var(--line);
-  border-left:3px solid var(--c,var(--blue));border-radius:var(--r);
+/* -------------------------------------------------------------- STATUS RAIL
+   One line, sticky under the header, always on screen. Replaces the four
+   large stat cards: mode and battery were the only things ever read off
+   them, and the E-stop used to scroll away with the rest of the page. */
+.srail{
+  position:sticky;top:var(--railtop,92px);z-index:50;
+  display:flex;align-items:center;gap:9px;flex-wrap:wrap;
+  padding:9px 13px;margin-bottom:10px;
+  background:color-mix(in srgb,var(--card) 93%,transparent);
+  backdrop-filter:blur(12px);
+  border:1px solid var(--line);border-radius:var(--rp);
+  box-shadow:var(--sh);
 }
-.stat .ic{
-  width:36px;height:36px;border-radius:9px;flex:none;display:grid;place-items:center;
-  font-size:17px;background:color-mix(in srgb,var(--c) 14%,transparent);
-}
-.stat b{display:block;font-size:10.5px;color:var(--tx3);font-weight:500}
-.stat u{display:block;font-size:19px;font-weight:700;text-decoration:none;line-height:1.25;color:var(--c)}
-.stat u.sm{font-size:13.5px;font-family:var(--mono);letter-spacing:-.3px}
+.srail .sp{flex:1;min-width:0}
 
-/* motion bar */
-.mbar{
-  display:flex;align-items:center;gap:12px;padding:11px 15px;margin-bottom:11px;
-  background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+/* connection pill — the lime is KKP's badge colour, reused as the live signal */
+.spill{
+  display:inline-flex;align-items:center;gap:6px;flex:none;
+  padding:5px 13px;border-radius:var(--rp);
+  font-size:12px;font-weight:650;letter-spacing:.1px;
+  background:var(--bg2);border:1px solid var(--line);color:var(--tx2);
 }
-.mbar .hint{font-size:11.5px;color:var(--tx3)}
+.spill::before{
+  content:"";width:7px;height:7px;border-radius:50%;background:var(--tx3);flex:none;
+}
+.spill.ok{background:var(--lime);border-color:transparent;color:var(--lime-tx)}
+.spill.ok::before{background:#2C7A2C;animation:pulse 2s infinite}
+.spill.warn{background:color-mix(in srgb,var(--amber) 16%,transparent);
+  border-color:color-mix(in srgb,var(--amber) 42%,transparent);color:var(--amber)}
+.spill.warn::before{background:var(--amber)}
+.spill.bad{background:color-mix(in srgb,var(--red) 13%,transparent);
+  border-color:color-mix(in srgb,var(--red) 38%,transparent);color:var(--red)}
+.spill.bad::before{background:var(--red)}
+
+/* inline readouts */
+.sfact{display:inline-flex;align-items:baseline;gap:6px;flex:none;font-size:12px}
+.sfact b{color:var(--tx3);font-weight:500;font-size:10.5px;letter-spacing:.03em;text-transform:uppercase}
+.sfact u{text-decoration:none;font-weight:650;color:var(--tx);font-variant-numeric:tabular-nums}
+.sfact u.m{font-family:var(--mono);font-size:11.5px;letter-spacing:-.2px}
+.sdiv{width:1px;height:17px;background:var(--line);flex:none}
+@media(max-width:1100px){ .sdiv{display:none} }
+
 .estop{
-  margin-left:auto;padding:9px 17px;border-radius:9px;font-weight:650;font-size:13px;
-  background:var(--red);color:#fff;box-shadow:0 2px 12px #ef444440;transition:.15s;
+  flex:none;padding:8px 17px;border-radius:var(--rp);font-weight:700;font-size:12.5px;
+  background:var(--red);color:#fff;box-shadow:0 0 12px color-mix(in srgb,var(--red) 40%,transparent);
+  transition:.15s;
 }
-.estop:hover{background:#dc2626}
+.estop:hover{filter:brightness(1.1)}
 .estop.on{background:#7f1d1d;animation:pulse .8s infinite}
-body.estopped .mbar{border-color:var(--red);background:#ef444410}
+body.estopped .srail{border-color:var(--red);
+  background:color-mix(in srgb,var(--red) 10%,var(--card))}
+.mhint{font-size:11px;color:var(--tx3);flex:none}
+@media(max-width:900px){ .mhint{display:none} }
 
-/* -------------------------------------------------------------------- GRID */
-.grid{display:grid;grid-template-columns:1.32fr 1fr;gap:11px;align-items:start}
-.col{display:flex;flex-direction:column;gap:11px;min-width:0}
-.duo{display:grid;grid-template-columns:1fr 1fr;gap:11px;min-width:0}
-@media(max-width:1200px){
-  .grid{grid-template-columns:1fr}
-  .stats{grid-template-columns:repeat(2,1fr)}
+/* ---------------------------------------------------------------- KPI STRIP
+   The four numbers actually watched while the robot moves. All four are
+   derived from data the dashboard already receives — nothing here is a
+   placeholder. */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px}
+.kpi{
+  padding:11px 14px;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r);min-width:0;
 }
-@media(max-width:640px){
-  .stats{grid-template-columns:1fr}
-  .duo{grid-template-columns:1fr}
+.kpi b{
+  display:block;font-size:10px;color:var(--tx3);font-weight:500;
+  letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
+.kpi u{
+  display:block;text-decoration:none;font-family:var(--mono);
+  font-size:21px;font-weight:700;line-height:1.15;letter-spacing:-.6px;
+  color:var(--tx);font-variant-numeric:tabular-nums;
+}
+.kpi u small{font-size:12px;font-weight:500;color:var(--tx3);margin-left:3px;letter-spacing:0}
+.kpi.alert u{color:var(--red)}
+.kpi.warn u{color:var(--amber)}
+.kpi.idle u{color:var(--tx3)}
+@media(max-width:900px){ .kpis{grid-template-columns:repeat(2,1fr)} }
+
+/* -------------------------------------------------------------------- GRID
+   Telemetry left, controls right. Previously the interaction panel sat in the
+   middle of the telemetry column, so readouts and buttons competed for the
+   same eye path. */
+.grid{display:grid;grid-template-columns:1.32fr 1fr;gap:10px;align-items:start}
+.col{display:flex;flex-direction:column;gap:10px;min-width:0}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px;min-width:0}
+@media(max-width:1200px){ .grid{grid-template-columns:1fr} }
+@media(max-width:640px){ .duo{grid-template-columns:1fr} }
 
 /* ----------------------------------------------------------------- CAMERAS */
 .cams{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
@@ -51,32 +102,35 @@ body.estopped .mbar{border-color:var(--red);background:#ef444410}
 .cam{cursor:pointer;min-width:0}
 .cam .fr{
   position:relative;aspect-ratio:4/3;border-radius:var(--rs);overflow:hidden;
-  background:#05070d;border:1px solid var(--line);
+  background:var(--bg2);border:1px solid var(--line);
 }
 .cam canvas,.cam img{width:100%;height:100%;object-fit:cover;display:block}
 .cam .fps{
-  position:absolute;right:4px;top:4px;font-size:9px;padding:2px 5px;border-radius:4px;
-  background:#000a;font-family:var(--mono);color:var(--green);
+  position:absolute;right:4px;top:4px;font-size:9px;padding:2px 6px;border-radius:var(--rp);
+  background:#000a;font-family:var(--mono);color:var(--lime);
 }
 .cam .nm{font-size:10.5px;color:var(--tx2);margin-top:5px;text-align:center;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cam:hover .fr{border-color:var(--blue)}
 
 /* --------------------------------------------------------------------- VIZ */
-.viz{position:relative;background:#05070d;border:1px solid var(--line);
+.viz{position:relative;background:var(--bg2);border:1px solid var(--line);
   border-radius:var(--rs);overflow:hidden}
+:root:not([data-theme="light"]) .viz{background:#08080D}
 .viz canvas{display:block;width:100%}
 .viz .ov{
   position:absolute;left:8px;bottom:6px;font-size:10px;color:var(--tx3);
   font-family:var(--mono);pointer-events:none;text-shadow:0 1px 3px #000;
 }
+:root[data-theme="light"] .viz .ov{text-shadow:none;color:var(--tx2)}
 .viz .ov.r{left:auto;right:8px}
 
 /* IMU key/value tiles */
 .kv{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .kv div{background:var(--card2);border:1px solid var(--line);border-radius:var(--rs);padding:9px 10px}
 .kv b{display:block;font-size:9.5px;color:var(--tx3);font-weight:500}
-.kv u{display:block;font-size:16px;font-weight:650;text-decoration:none;font-family:var(--mono)}
+.kv u{display:block;font-size:16px;font-weight:650;text-decoration:none;
+  font-family:var(--mono);font-variant-numeric:tabular-nums}
 
 /* --------------------------------------------------------- BUTTON CLUSTERS */
 .grp{margin-bottom:13px}
@@ -86,14 +140,13 @@ body.estopped .mbar{border-color:var(--red);background:#ef444410}
 /* ---------------------------------------------------------------- CHAT/LOG */
 .chat{height:196px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding-right:4px}
 .chat .ph{margin:auto;text-align:center;color:var(--tx3);font-size:12px;line-height:1.7}
-.msg{max-width:88%;padding:8px 11px;border-radius:11px;font-size:12.5px;line-height:1.5}
+.msg{max-width:88%;padding:8px 12px;border-radius:13px;font-size:12.5px;line-height:1.5}
 .msg.u{align-self:flex-end;background:var(--blue);color:#fff;border-bottom-right-radius:3px}
 .msg.r{align-self:flex-start;background:var(--card2);border:1px solid var(--line);border-bottom-left-radius:3px}
 .logs{
   height:170px;overflow-y:auto;font-family:var(--mono);font-size:10.5px;
-  background:#05070d;border-radius:var(--rs);padding:8px;line-height:1.65;
+  background:var(--bg2);border-radius:var(--rs);padding:8px;line-height:1.65;
 }
-:root[data-theme="light"] .logs{background:var(--card2)}
 .logs div{white-space:pre-wrap;word-break:break-all}
 .logs .t{color:var(--tx3)} .logs .i{color:var(--blue)} .logs .s{color:var(--green)}
 .logs .w{color:var(--amber)} .logs .e{color:var(--red)}
@@ -103,15 +156,18 @@ body.estopped .mbar{border-color:var(--red);background:#ef444410}
    thing a new user sees now that the dashboard boots in real mode, so it has
    to point somewhere useful rather than just look broken. */
 #offline{
-  display:none;margin-bottom:11px;padding:20px 22px;border-radius:var(--r);
-  background:linear-gradient(135deg,color-mix(in srgb,var(--amber) 8%,var(--card)),var(--card));
-  border:1px solid color-mix(in srgb,var(--amber) 34%,var(--line));
+  display:none;margin-bottom:10px;padding:22px 24px;border-radius:var(--r);
+  background:var(--card);
+  border:1px solid var(--line);
+  border-left:3px solid var(--amber);
 }
 body.offline #offline{display:block}
-#offline h4{font-size:15px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:9px}
-#offline .en{color:var(--tx2);font-weight:400;font-size:13px}
-#offline p{font-size:12.5px;color:var(--tx2);line-height:1.7;max-width:70ch;margin-bottom:3px}
-#offline .row{margin-top:13px}
-#offline .why{margin-top:12px;font-size:11.5px;color:var(--tx3);line-height:1.7}
+#offline h4{font-size:17px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:9px}
+#offline .en{color:var(--tx2);font-weight:400;font-size:14px}
+#offline p{font-size:13.5px;color:var(--tx2);line-height:1.75;max-width:66ch;margin-bottom:4px}
+#offline .row{margin-top:15px}
+#offline .why{margin-top:14px;font-size:12px;color:var(--tx3);line-height:1.75;
+  padding-top:12px;border-top:1px solid var(--line)}
 #offline h4 .th,#offline h4 .en,#offline .why .th,#offline .why .en{display:block}
-#offline .why code{font-family:var(--mono);background:var(--bg2);padding:1px 5px;border-radius:4px;color:var(--cyan)}
+#offline .why code{font-family:var(--mono);background:var(--bg2);padding:1px 5px;
+  border-radius:var(--rx);color:var(--cyan)}

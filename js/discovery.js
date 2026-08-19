@@ -12,7 +12,7 @@ const BOUND = new Set(Object.values(T));
 async function discover(){
   if(App.sim){
     App.discovered=Object.entries(T).map(([k,v])=>({name:v,type:"(จำลอง / simulated)"}));
-    renderDisc();
+    renderDisc(); reflectTopicCount();
     return;
   }
   try{
@@ -21,7 +21,7 @@ async function discover(){
       .map((n,i)=>({name:n,type:(r.types || [])[i] || "?"}))
       .sort((a,b)=>a.name.localeCompare(b.name));
     log(`ตรวจพบ ${App.discovered.length} topics`,"s");
-    renderDisc();
+    renderDisc(); reflectTopicCount();
     autoSubscribe();
     $("#discModal").classList.add("on");
   }catch(e){
@@ -49,6 +49,16 @@ function autoSubscribe(){
   if(!n){
     log("ไม่พบ topic ที่รู้จักเลย — rosbridge ต่อได้ แต่ node ของหุ่นยนต์อาจยังไม่ทำงาน","w");
   }
+}
+
+/* Topic count lives in the status rail: "how many of the things I know how to
+   draw are actually on this robot" is the fastest health check there is. */
+function reflectTopicCount(){
+  const el=$("#sTopics"); if(!el) return;
+  const total=App.discovered.length;
+  if(!total){ el.textContent="—"; return; }
+  const bound=App.discovered.filter(d=>BOUND.has(d.name)).length;
+  el.textContent=`${bound}/${total}`;
 }
 
 function renderDisc(){

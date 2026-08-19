@@ -65,6 +65,7 @@ Bus.on(T.pmu,m=>{
   const v=m.bus_48v_voltage ?? m.voltage ?? 0;
   $("#sBatt").textContent=b.toFixed(0)+"%";
   $("#sVolt").textContent=v.toFixed(2)+" V";
-  $("#battCard").style.setProperty("--c",
-    b<20 ? "var(--red)" : b<40 ? "var(--amber)" : "var(--green)");
+  /* The rail has no card to tint, so the number itself carries the state. */
+  $("#sBatt").style.color =
+    b<20 ? "var(--red)" : b<40 ? "var(--amber)" : "var(--tx)";
 });

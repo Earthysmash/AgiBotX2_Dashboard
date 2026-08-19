@@ -8,8 +8,7 @@
 function setConn(text,kind){
   const el=$("#sConn");
   el.textContent=text;
-  el.closest(".stat").style.setProperty("--c",
-    kind==="ok" ? "var(--green)" : kind==="warn" ? "var(--amber)" : "var(--red)");
+  el.className="spill "+(kind==="ok" ? "ok" : kind==="warn" ? "warn" : "bad");
 }
 
 /* Push the socket's real state onto the status card and the offline hero. */
@@ -138,16 +137,74 @@ function wireControls(){
   $("#pcR").onclick=()=>{ PC.mode="r"; $("#pcR").classList.add("on"); $("#pcH").classList.remove("on"); };
   $("#pcSpin").onchange=e=>PC.spin=e.target.checked;
 
+  /* auto → light → dark → auto. Auto is the interesting one: instruments on
+     dark, the setup guide on white, without the operator managing it. */
   $("#themeBtn").onclick=()=>{
-    const light=document.documentElement.getAttribute("data-theme")==="light";
-    document.documentElement.setAttribute("data-theme",light?"dark":"light");
-    $("#themeBtn").textContent=light?"☀️":"🌙";
+    const order=["auto","light","dark"];
+    App.themeMode=order[(order.indexOf(App.themeMode)+1) % order.length];
+    applyTheme();
     Prefs.save();
   };
 }
 
+const THEME_BTN={auto:["🌗","ธีมอัตโนมัติ (ตามแท็บ)"],light:["☀️","ธีมสว่าง"],dark:["🌙","ธีมมืด"]};
+
+function applyTheme(){
+  const t = App.themeMode==="auto"
+    ? (App.tab==="guide" ? "light" : "dark")
+    : App.themeMode;
+  document.documentElement.setAttribute("data-theme",t);
+  const b=$("#themeBtn"), m=THEME_BTN[App.themeMode] || THEME_BTN.auto;
+  if(b){ b.textContent=m[0]; b.title=m[1]; }
+}
+
+/* The status rail and the guide's sticky toolbar both park directly under the
+   header, so measure it rather than hard-coding a height that drifts. */
+function measureHeader(){
+  const h=document.querySelector("header");
+  if(h) document.documentElement.style.setProperty("--railtop",(h.offsetHeight+8)+"px");
+}
+
+/* -------------------------------------------------------------- KPI STRIP
+   Four numbers, all derived from data already arriving. The forward-clearance
+   filter is the same one localAnswer() uses, so the tile and the voice agent
+   can never disagree about what is in front of the robot. */
+function setKpi(id,txt,unit,state){
+  const el=$(id); if(!el) return;
+  el.className="kpi "+(state || "");
+  el.querySelector("u").innerHTML=esc(txt)+(unit?`<small>${esc(unit)}</small>`:"");
+}
+
+function updateKpis(){
+  const pts=App.cloud.length;
+
+  /* forward ±30° arc, torso height band */
+  let clear=Infinity;
+  for(const p of App.cloud){
+    if(p[2]<=-0.85 || p[2]>=0.7) continue;
+    if(Math.abs(Math.atan2(p[1],p[0]))>=0.52) continue;
+    const d=Math.hypot(p[0],p[1]);
+    if(d<clear) clear=d;
+  }
+  if(!pts)                setKpi("#kClear","—","ม.","idle");
+  else if(!isFinite(clear)) setKpi("#kClear","โล่ง","","");
+  else setKpi("#kClear",clear.toFixed(2),"ม.",
+        clear<0.6 ? "alert" : clear<1.2 ? "warn" : "");
+
+  const hz=Bus.hz(T.lidar);
+  setKpi("#kLidar", hz>0 ? hz.toFixed(1) : "—", "Hz",
+         hz>0 ? (hz<3 ? "warn" : "") : "idle");
+
+  setKpi("#kPts", pts ? pts.toLocaleString("en-US") : "—", "", pts?"":"idle");
+
+  const havePose=App.pose.x || App.pose.y || App.pose.yaw;
+  setKpi("#kPose", havePose
+    ? `${App.pose.x.toFixed(1)}, ${App.pose.y.toFixed(1)}` : "—", "",
+    havePose?"":"idle");
+}
+
 /* ---------------------------------------------------------------- LOOP */
-let last=now(), mapAcc=0;
+let last=now(), mapAcc=0, kpiAcc=0;
 function frame(){
   const t=now(), dt=Math.min(t-last,0.1); last=t;
 
@@ -158,6 +215,9 @@ function frame(){
     drawLidar2D(); drawPC(); drawDepth(); drawPose(); drawHorizon();
     if(App.mapping){ mapAcc+=dt; if(mapAcc>0.25){ mapAcc=0; splatCloudIntoMap(); } }
     drawMap();
+    /* 5 Hz is plenty for numbers a human reads, and keeps the tiles from
+       flickering between adjacent LiDAR frames. */
+    kpiAcc+=dt; if(kpiAcc>0.2){ kpiAcc=0; updateKpis(); }
   }
   requestAnimationFrame(frame);
 }
@@ -166,8 +226,7 @@ function frame(){
 (function boot(){
   Prefs.load();
   if(!document.body.getAttribute("data-lang")) document.body.setAttribute("data-lang","both");
-  $("#themeBtn").textContent =
-    document.documentElement.getAttribute("data-theme")==="light" ? "🌙" : "☀️";
+  applyTheme();
 
   /* keep IP and URL in step whichever one was restored */
   App.cfg.ip = ipFromUrl(App.cfg.url) || App.cfg.ip;
@@ -197,6 +256,8 @@ function frame(){
 
   wireControls();
   Tabs.init();
+  measureHeader();
+  window.addEventListener("resize",measureHeader);
 
   setInterval(()=>{ $("#clock").textContent=new Date().toTimeString().slice(0,8); },1000);
   setInterval(()=>{ if($("#discModal").classList.contains("on")) renderDisc(); },1200);
