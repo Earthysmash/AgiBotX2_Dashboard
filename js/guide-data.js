@@ -404,12 +404,127 @@ trouble:[
   {sym:"rosbridge เปิดอยู่ แต่แดชบอร์ดยังต่อไม่ติด",
    fix:{th:"พอร์ต 9090 อาจถูกไฟร์วอลล์บล็อก ลองสั่ง sudo ufw allow 9090 บนหุ่นยนต์ และตรวจว่า URL เป็น ws:// ไม่ใช่ http://",
         en:"Port 9090 may be blocked by a firewall. Try sudo ufw allow 9090 on the robot, and confirm the URL starts with ws:// and not http://."}},
+  {sym:"“Connection refused” เมื่อย้ายไปใช้ Wi-Fi อื่น",
+   fix:{th:"“refused” ไม่เหมือน “timed out” — มีเครื่องตอบกลับมาจริง แต่ไม่ใช่หุ่นยนต์ " +
+          "เลข IP แบบ 192.168.x.x ซ้ำกันได้ทุกบ้าน พอเปลี่ยนวง เลขเดิมจึงไปตกที่อุปกรณ์อื่นหรือตัวเราเตอร์ " +
+          "ซึ่งไม่ได้เปิดพอร์ต 9090 วิธีที่ชัวร์ที่สุดคือใช้โหมด AP ของหุ่นยนต์ แล้วต่อเข้าวงของหุ่นยนต์เอง",
+        en:"“Refused” is not “timed out” — a machine did answer, just not the robot. Addresses like " +
+           "192.168.x.x repeat on every network, so on a different Wi-Fi the same number lands on some " +
+           "other device, or on the router, which has nothing on port 9090. The reliable fix is the " +
+           "robot's AP mode: join the robot's own network instead."}},
+  {sym:"ต่อได้ที่บ้าน แต่ที่อื่นต่อไม่ได้ ทั้งที่ไม่ได้แก้อะไรเลย",
+   fix:{th:"เลข IP ผูกกับวงเครือข่าย ไม่ได้ผูกกับหุ่นยนต์ ย้ายวงเมื่อไหร่เลขก็เปลี่ยนความหมาย " +
+          "ถ้าต้องย้ายที่บ่อย ใช้โหมด AP จะได้เลขเดิมทุกครั้ง และอย่าลืมกดปุ่ม “บันทึก” หลังแก้เลข",
+        en:"An IP belongs to a network, not to the robot — move networks and the same number means " +
+           "something else. If you move around a lot, AP mode gives you the same address every time. " +
+           "Remember to press Save after changing it."}},
   {sym:"ทุกแผงว่างเปล่า แต่การ์ดเชื่อมต่อเป็นสีเขียว",
    fix:{th:"ต่อ rosbridge ติดแล้วแต่ไม่พบ topic ที่แดชบอร์ดรู้จัก กดปุ่ม 🔍 Topics เพื่อดูว่าหุ่นยนต์ส่งช่องอะไรออกมาบ้างจริง ๆ",
         en:"rosbridge is attached but none of the expected channels are present. Press 🔍 Topics to see what the robot is genuinely publishing."}},
 ],
 
 /* ----------------------------------------------------------------- GLOSSARY */
+/* ---------------------------------------------------------------- ZENOH
+   Deliberately not step 9. The numbered path above is for someone who has
+   never opened a terminal; this is for someone who already has rosbridge
+   working and has hit a reason to want something else. Kept collapsed so it
+   cannot be mistaken for a required step. */
+zenoh:{
+  icon:"🧪",
+  title:{th:"ทางเลือก: ใช้ Zenoh แทน rosbridge", en:"Optional: use Zenoh instead of rosbridge"},
+  sub:{th:"ขั้นสูง — ข้ามได้ถ้า rosbridge ใช้งานได้อยู่แล้ว",
+       en:"Advanced — skip this if rosbridge already works for you"},
+  blocks:[
+    {p:{
+      th:"Zenoh เป็นตัวส่งข้อมูลอีกแบบหนึ่ง ใช้แทน rosbridge ได้ แต่ไม่ได้ดีกว่าเสมอไป " +
+         "ถ้าคอมพิวเตอร์ของคุณเสียบสายแลนอยู่กับหุ่นยนต์ตัวเดียวในวงเดียวกัน Zenoh แทบไม่ช่วยอะไรเลย " +
+         "และตั้งค่ายากกว่า มันคุ้มเมื่อสัญญาณไม่ดี ต่อผ่านอินเทอร์เน็ต ข้าม NAT หรือมีหุ่นยนต์หลายตัวพร้อมกัน",
+      en:"Zenoh is a different way of moving the data. It can replace rosbridge, but it is not " +
+         "simply better. On a LAN cable to one robot it buys you close to nothing and costs more " +
+         "setup. It earns its keep over a poor link, across the internet or NAT, or with several " +
+         "robots at once.",
+    }},
+    {warn:{
+      th:"ในเวอร์ชันนี้ Zenoh รับได้ทีละ topic เดียว เพื่อใช้ทดลองวัดผล ส่วนรายการ topic " +
+         "การจำกัดอัตราข้อมูล และปุ่มสั่งงานทั้งหมด ยังทำงานผ่าน rosbridge เหมือนเดิม " +
+         "อย่าปิด rosbridge",
+      en:"In this build Zenoh carries one topic only, as a measurement experiment. The topic list, " +
+         "the rate limiting and every command button still run over rosbridge. Do not turn " +
+         "rosbridge off.",
+    }},
+    {p:{
+      th:"ติดตั้งตัวเชื่อมบนหุ่นยนต์ก่อน มันทำงานคู่ไปกับของเดิม ไม่ได้ไปแก้อะไรใน AIMDK",
+      en:"Install the bridge on the robot. It runs alongside what is already there and changes " +
+         "nothing about AIMDK.",
+    }},
+    {cmd:{lb:{th:"บนหุ่นยนต์ — เพิ่มแหล่งติดตั้งแล้วติดตั้ง",
+              en:"On the robot — add the repository, then install"},
+          run:'echo "deb [trusted=yes] https://download.eclipse.org/zenoh/debian-repo/ /" | sudo tee /etc/apt/sources.list.d/zenoh.list && sudo apt update && sudo apt install -y zenoh-bridge-ros2dds'}},
+    {cmd:{lb:{th:"บนหุ่นยนต์ — เปิดตัวเชื่อม พร้อมช่องทาง REST",
+              en:"On the robot — start the bridge with its REST port open"},
+          run:"zenoh-bridge-ros2dds --rest-http-port 8000"}},
+    {p:{
+      th:"เปิดค้างไว้แบบเดียวกับ rosbridge ปิดหน้าต่างเมื่อไหร่ข้อมูลก็หยุด " +
+         "จากเครื่องของคุณ ลองสั่งข้างล่างนี้เพื่อดูว่าตัวเชื่อมเปิดอยู่จริง",
+      en:"Leave it running, exactly like rosbridge — close the window and the data stops. " +
+         "From your own computer, check the bridge is really up:",
+    }},
+    {cmd:{lb:{th:"บนเครื่องคุณ — ถามตัวเชื่อมว่ายังอยู่ไหม",
+              en:"On your computer — ask the bridge whether it is alive"},
+          run:"curl http://{IP}:8000/@/**"}},
+    {p:{
+      th:"ถ้ามีข้อความ JSON ยาว ๆ ตอบกลับมา แปลว่าใช้ได้ ถ้าไม่มีอะไรตอบเลย " +
+         "แปลว่าตัวเชื่อมยังไม่เปิด หรือพอร์ต 8000 ถูกปิดกั้นอยู่",
+      en:"A long burst of JSON means it works. Nothing at all means the bridge is not running, " +
+         "or port 8000 is blocked.",
+    }},
+    {fork:[
+      {h:{th:"อยู่วงเดียวกัน (สายแลน)", en:"Same network (LAN cable)"},
+       blocks:[{p:{
+         th:"ตั้งค่าในหน้าเว็บได้เลย ใช้ปุ่มด้านล่าง แล้วกด “เริ่ม · Start” ในกล่อง Zenoh",
+         en:"Configure it in the dashboard directly — use the button below, then press " +
+            "Start in the Zenoh box.",
+       }}]},
+      {h:{th:"ข้ามอินเทอร์เน็ต / คนละวง", en:"Across the internet / different network"},
+       blocks:[{p:{
+         th:"วิธีที่ดีกว่าคือ ไม่ต้องแก้หน้าเว็บเลย ให้ Zenoh ทำหน้าที่ลากข้อมูลข้ามระยะไกล " +
+            "แล้วรัน rosbridge ไว้ที่ฝั่งคุณ หน้าเว็บจะยังคุยกับ rosbridge เหมือนเดิมทุกอย่าง",
+         en:"The better shape here changes nothing in the dashboard: let Zenoh carry the ROS " +
+            "graph across the long link, and run rosbridge on your own machine. The page keeps " +
+            "talking to rosbridge exactly as before, and you keep the topic list, the throttling " +
+            "and every command button.",
+       }},
+       {cmd:{lb:{th:"บนเครื่องคุณ — ต่อไปหาตัวเชื่อมฝั่งหุ่นยนต์",
+                 en:"On your computer — connect back to the robot's bridge"},
+             run:"zenoh-bridge-ros2dds -e tcp/{IP}:7447"}},
+       {cmd:{lb:{th:"บนเครื่องคุณ — แล้วรัน rosbridge ไว้ฝั่งนี้",
+                 en:"On your computer — then run rosbridge on this side"},
+             run:"ros2 launch rosbridge_server rosbridge_websocket_launch.xml"}},
+       {p:{
+         th:"จากนั้นตั้ง URL ในหน้า ⚙️ ตั้งค่า เป็น ws://localhost:9090 แทนหมายเลขของหุ่นยนต์",
+         en:"Then set the URL in ⚙️ ตั้งค่า to ws://localhost:9090 instead of the robot's address.",
+       }}]},
+    ]},
+    {zapply:true},
+    {tip:{
+      th:"ถ้ากด “เริ่ม” แล้วนับ sample ขึ้น แต่ decode ล้มเหลว ให้กดปุ่ม “ดู sample ดิบ · Raw” " +
+         "แล้วดูใน log ด้านล่าง — แปลว่าข้อมูลมาถึงแล้ว แต่หน้าเว็บอ่านรูปแบบไม่ออก " +
+         "ซึ่งเป็นคนละปัญหากับต่อไม่ติด",
+      en:"If the sample count rises but decoding fails, press Raw and read the log. That means " +
+         "the data is arriving but the page cannot read its shape — an entirely different " +
+         "problem from not connecting at all.",
+    }},
+    {warn:{
+      th:"Zenoh ส่งข้อมูลมาแบบดิบ (CDR) หน้าเว็บต้องรู้จักชนิดข้อความเองทีละชนิด " +
+         "ตอนนี้รองรับแค่ Odometry กับ PoseWithCovarianceStamped เท่านั้น " +
+         "topic อื่นเช่นกล้องหรือ point cloud ยังต้องใช้ rosbridge",
+      en:"Zenoh delivers raw CDR, so the page must know each message type by hand. Only " +
+         "Odometry and PoseWithCovarianceStamped are implemented. Cameras, depth and point " +
+         "cloud still need rosbridge.",
+    }},
+  ],
+},
+
 glossary:[
   {t:"IP address",
    th:"เลขประจำเครื่องบนเครือข่าย เหมือนเลขที่บ้าน ใช้ระบุว่าจะส่งข้อมูลไปหาเครื่องไหน",
@@ -438,6 +553,19 @@ glossary:[
   {t:"WebSocket / ws://",
    th:"ช่องทางที่หน้าเว็บใช้คุยกับ rosbridge แบบสองทางตลอดเวลา ที่อยู่จะขึ้นต้นด้วย ws:// ไม่ใช่ http://",
    en:"The two-way channel a web page uses to talk to rosbridge. Its address starts with ws://, not http://."},
+  {t:"AP mode",
+   th:"โหมดที่หุ่นยนต์ปล่อย Wi-Fi ของตัวเองออกมาให้เราต่อเข้าไป แทนที่จะไปเกาะ Wi-Fi ของที่นั้น " +
+      "ข้อดีคือเลข IP ของหุ่นยนต์เหมือนเดิมทุกที่ ไม่ต้องมานั่งหาใหม่",
+   en:"A mode where the robot broadcasts its own Wi-Fi for you to join, instead of joining the " +
+      "venue's. The robot keeps the same address everywhere, so there is nothing to look up again."},
+  {t:"Zenoh",
+   th:"ระบบส่งข้อมูลอีกแบบ ใช้แทน rosbridge ได้ เก่งเรื่องสัญญาณไม่ดีและการต่อข้ามเครือข่าย แต่ตั้งค่ายากกว่า",
+   en:"Another way of moving data, an alternative to rosbridge. Good over poor links and across " +
+      "networks, but more work to set up."},
+  {t:"CDR",
+   th:"รูปแบบข้อมูลดิบที่ ROS ใช้ส่งจริง ๆ rosbridge แปลให้เป็นข้อความที่หน้าเว็บอ่านง่ายแล้ว แต่ Zenoh ส่งมาดิบ ๆ",
+   en:"The raw format ROS actually sends. rosbridge translates it into something a web page can " +
+      "read; Zenoh hands it over untranslated."},
   {t:"SLAM",
    th:"การที่หุ่นยนต์วาดแผนที่ของสถานที่ไปพร้อม ๆ กับหาว่าตัวเองอยู่ตรงไหนในแผนที่นั้น",
    en:"The robot drawing a map of a place while simultaneously working out where it is on that map."},

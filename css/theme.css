@@ -121,6 +121,10 @@ header{
 .ab:active:not(:disabled){transform:translateY(0)}
 .ab:disabled{opacity:.34;cursor:not-allowed}
 .ab.sent{border-color:var(--green);background:#22c55e26}
+/* Whole-body ท่า while the stationary lock is on. Still clickable so the
+   refusal is explained in the log rather than the button just going dead. */
+.ab.locked{opacity:.4;border-style:dashed;cursor:not-allowed}
+.ab.locked:hover{border-color:var(--red);background:transparent;transform:none}
 .row{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
 select,input[type=text]{
   padding:6.5px 10px;border-radius:8px;background:var(--card2);

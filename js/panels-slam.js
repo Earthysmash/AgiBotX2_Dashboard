@@ -14,36 +14,79 @@ function parseCloud(msg){
   const f={}; (msg.fields || []).forEach(x=>f[x.name]=x);
   if(!f.x || !f.y || !f.z || !msg.data) return;
 
-  const bytes=b64bytes(msg.data);
+  const bytes=asBytes(msg.data);  if(!bytes) return;
   const dv=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
   const step=msg.point_step, n=(bytes.length/step)|0;
+  /* Same ground reference the figure uses, so the cloud and the robot share
+     one frame and "0.9 m up" means the same thing in both panels. */
+  const gz=(typeof groundZ==="function") ? groundZ() : 0.60;
   const stride=Math.max(1,Math.ceil(n/App.cfg.maxPts));
   const out=[];
   for(let i=0;i<n;i+=stride){
     const o=i*step;
-    const x=dv.getFloat32(o+f.x.offset,true),
-          y=dv.getFloat32(o+f.y.offset,true),
-          z=dv.getFloat32(o+f.z.offset,true);
-    if(Number.isFinite(x)&&Number.isFinite(y)&&Number.isFinite(z)) out.push([x,y,z]);
+    const sx=dv.getFloat32(o+f.x.offset,true),
+          sy=dv.getFloat32(o+f.y.offset,true),
+          sz=dv.getFloat32(o+f.z.offset,true);
+    if(!(Number.isFinite(sx)&&Number.isFinite(sy)&&Number.isFinite(sz))) continue;
+    /* The cloud arrives in lidar_chest_front, which the URDF mounts with
+       rpy = (-pi/2, 0, 0). Sensor +y points DOWN in base and sensor +z points
+       LEFT, so plotting the raw triple as if it were base coordinates renders
+       a side view and makes the height filter slice left-to-right instead of
+       up-down. That was the "weird" LiDAR. */
+    const b = SENSOR_TF.lidar_chest_front.map(sx, sy, sz);
+    b[2] += gz;                 /* pelvis-relative -> floor at z = 0 */
+    out.push(b);
   }
   App.cloud=out;
 }
 Bus.on(T.lidar,parseCloud);
+/* Whichever sweep the robot actually offers feeds the same parser — the
+   downsampled cloud is the same PointCloud2 layout with fewer points. */
+Bus.on(T.lidarDS,parseCloud);
 
 Bus.on(T.depth,m=>{
   if(!m.data) return;
-  const bytes=b64bytes(m.data);
+  const bytes=asBytes(m.data);  if(!bytes) return;
   App.depthW=m.width; App.depthH=m.height;
-  /* 16UC1 is the standard depth encoding: millimetres, little-endian */
-  App.depthBuf=new Uint16Array(bytes.buffer,bytes.byteOffset,(bytes.length/2)|0);
+  /* 16UC1 is the standard depth encoding: millimetres, little-endian.
+     Under CBOR these bytes are a view into the WebSocket frame and can start
+     at any offset, while a Uint16Array view demands an even one — so copy when
+     the offset is odd. Base64 always decoded to a fresh buffer at 0, which is
+     why this only appears once the wire format changes. */
+  const aligned = (bytes.byteOffset % 2) ? bytes.slice() : bytes;
+  App.depthBuf=new Uint16Array(aligned.buffer, aligned.byteOffset,
+                               (aligned.byteLength/2)|0);
 });
 
-Bus.on(T.odom,m=>{
+/* Two pose sources, one panel. /slam/lidar_odom is the one we want, but it
+   stays silent until SLAM is started, and a dashboard showing 0,0,0 forever
+   looks broken rather than un-started. Leg odometry runs from boot, so it
+   drives the panel whenever the SLAM feed has gone quiet — and yields the
+   moment the real one comes back. */
+let odomPrimaryAt=0, odomSrc="";
+
+function applyOdom(m,primary){
   if(m.__mock) return;
+  const t=now();
+  if(primary) odomPrimaryAt=t;
+  else if(t-odomPrimaryAt < 2) return;   /* SLAM is live — ignore the stand-in */
+
   const p=m.pose?.pose?.position, q=m.pose?.pose?.orientation;
   if(!p) return;
   App.pose={x:p.x, y:p.y, yaw:q ? quatToRPY(q).yaw : 0};
-});
+
+  const src=primary ? "SLAM" : "leg odometry";
+  if(src!==odomSrc){
+    odomSrc=src;
+    log("ที่มาของตำแหน่ง: "+src+(primary?"":" — SLAM ยังไม่เริ่ม"),primary?"s":"w");
+  }
+}
+
+/* Both SLAM outputs count as "primary" -- whichever of localization or
+   mapping is actually running wins over leg odometry. */
+Bus.on(T.odom,   m=>applyOdom(m,true));
+Bus.on(T.odomMap,m=>applyOdom(m,true));
+Bus.on(T.odomLeg,m=>applyOdom(m,false));
 
 /* --------------------------------------------------------- OCCUPANCY GRID */
 function ensureGrid(){

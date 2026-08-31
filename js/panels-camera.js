@@ -90,7 +90,14 @@ function bindCamTopics(){
       const st=(camState[c.id] || {}).live;
       if(!st) return;
       st.cv.style.display="none"; st.img.style.display="block";
-      st.img.src="data:image/jpeg;base64,"+msg.data;
+      /* A Blob URL beats a data: URI here — no base64 round trip, and under
+         CBOR the JPEG bytes are already in hand. The previous URL is revoked
+         only once its replacement is assigned, so the visible frame is never
+         the one being freed. */
+      const bytes=asBytes(msg.data); if(!bytes) return;
+      const url=URL.createObjectURL(new Blob([bytes],{type:"image/jpeg"}));
+      const prev=st.url; st.url=url; st.img.src=url;
+      if(prev) URL.revokeObjectURL(prev);
       st.fps.textContent=Bus.hz(c.topic).toFixed(1);
     });
   });

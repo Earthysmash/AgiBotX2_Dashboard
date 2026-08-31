@@ -60,6 +60,15 @@ Bus.on(T.imu,m=>{
 
 /* Power telemetry feeds the shared status strip, which sits outside the tab
    panes — so these are direct lookups, not P() lookups. */
+/* Back to "no reading" rather than a stale one. Called on every source switch;
+   whichever source is now driving will overwrite these on its next message. */
+function clearPowerCards(){
+  $("#sBatt").textContent="--%";
+  $("#sVolt").textContent="-- V";
+  $("#sMode").textContent="UNKNOWN";
+  $("#battCard").style.setProperty("--c","var(--line2)");
+}
+
 Bus.on(T.pmu,m=>{
   const b=m.battery_percent ?? m.battery_level ?? 0;
   const v=m.bus_48v_voltage ?? m.voltage ?? 0;

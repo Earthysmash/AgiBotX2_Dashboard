@@ -28,6 +28,11 @@ const Tabs = {
       App.cloud=[]; App.depthBuf=null; App.depthW=App.depthH=0;
       App.mapGrid=null; App.mapping=false;
       App.imu={w:1,x:0,y:0,z:0};
+      App.pose={x:0,y:0,yaw:0};
+      /* The power strip sits OUTSIDE the panes, so wiping pane state missed
+         it: a simulated 75% battery stayed on screen over a live robot, which
+         is the one number an operator must never read wrong. */
+      clearPowerCards();
       Mock.reset();
     }
 
