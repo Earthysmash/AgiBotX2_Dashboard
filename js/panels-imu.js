@@ -60,20 +60,12 @@ Bus.on(T.imu,m=>{
 
 /* Power telemetry feeds the shared status strip, which sits outside the tab
    panes — so these are direct lookups, not P() lookups. */
-/* Back to "no reading" rather than a stale one. Called on every source switch;
-   whichever source is now driving will overwrite these on its next message. */
-function clearPowerCards(){
-  $("#sBatt").textContent="--%";
-  $("#sVolt").textContent="-- V";
-  $("#sMode").textContent="UNKNOWN";
-  $("#battCard").style.setProperty("--c","var(--line2)");
-}
-
 Bus.on(T.pmu,m=>{
   const b=m.battery_percent ?? m.battery_level ?? 0;
   const v=m.bus_48v_voltage ?? m.voltage ?? 0;
   $("#sBatt").textContent=b.toFixed(0)+"%";
   $("#sVolt").textContent=v.toFixed(2)+" V";
-  $("#battCard").style.setProperty("--c",
-    b<20 ? "var(--red)" : b<40 ? "var(--amber)" : "var(--green)");
+  /* The rail has no card to tint, so the number itself carries the state. */
+  $("#sBatt").style.color =
+    b<20 ? "var(--red)" : b<40 ? "var(--amber)" : "var(--tx)";
 });

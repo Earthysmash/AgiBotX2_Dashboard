@@ -37,16 +37,13 @@ function drawLidar2D(){
   ctx.fillStyle="#22c55e";
   let n=0;
   for(const p of App.cloud){
-    /* Keep a waist-high slab: above the floor, below the head. In the old
-       pelvis frame this band was cutting left-to-right, because the axis it
-       filtered on was the sensor's, not the robot's. */
-    if(p[2]<0.10||p[2]>1.50) continue;
+    if(p[2]<-0.9||p[2]>0.7) continue;
     const x=cx+p[0]*scale, y=cy-p[1]*scale;
     if(x<0||x>w||y<0||y>h) continue;
     ctx.fillRect(x,y,1.7,1.7); n++;
   }
   ctx.fillStyle="#ef4444"; ctx.beginPath(); ctx.arc(cx,cy,4,0,7); ctx.fill();
-  setTx("lidar2dInfo",`${n} pts · ${Math.max(Bus.hz(T.lidar),Bus.hz(T.lidarDS)).toFixed(1)} Hz`);
+  setTx("lidar2dInfo",`${n} pts · ${Bus.hz(T.lidar).toFixed(1)} Hz`);
 }
 
 /* ---------------------------------------------------------- POINT CLOUD 3D */

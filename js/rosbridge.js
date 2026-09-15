@@ -10,18 +10,18 @@
 class RosBridge{
   constructor(){
     this.ws=null; this.id=0; this.pending=new Map(); this.subs=new Set();
-    this.connected=false; this.onstate=()=>{}; this.badFrame=false;
+    this.connected=false; this.onstate=()=>{};
     this.quiet=false;   /* suppress repeat error spam while auto-retrying */
   }
 
   connect(url){
     this.close();
     if(!this.quiet) log("เชื่อมต่อ rosbridge → "+url,"i");
-    try{ this.ws=new WebSocket(url); this.ws.binaryType="arraybuffer"; }
+    try{ this.ws=new WebSocket(url); }
     catch(e){ log("URL ไม่ถูกต้อง: "+e.message,"e"); this.onstate(false,"bad-url"); return; }
 
     this.ws.onopen=()=>{
-      this.connected=true; this.quiet=false; this.badFrame=false;
+      this.connected=true; this.quiet=false;
       log("rosbridge เชื่อมต่อสำเร็จ","s"); this.onstate(true);
     };
     this.ws.onclose=()=>{
@@ -35,16 +35,7 @@ class RosBridge{
       log("rosbridge error — ตรวจว่า rosbridge_server รันอยู่ และ IP/พอร์ตถูกต้อง","e");
     };
     this.ws.onmessage=ev=>{
-      /* Two wire formats on one socket: CBOR arrives as a binary frame, plain
-         JSON as text. rosbridge answers service calls and status in JSON even
-         while publishing CBOR, so this cannot be decided once per connection. */
-      let m;
-      try{
-        m = (typeof ev.data === "string") ? JSON.parse(ev.data) : cborDecode(ev.data);
-      }catch(e){
-        if(!this.badFrame){ this.badFrame=true; log("decode ผิดพลาด: "+e.message,"e"); }
-        return;
-      }
+      let m; try{ m=JSON.parse(ev.data); }catch{ return; }
       if(m.op==="publish") Bus.emit(m.topic,m.msg,"live");
       else if(m.op==="service_response"){
         const p=this.pending.get(m.id);
@@ -70,38 +61,12 @@ class RosBridge{
     if(this.subs.has(topic)) return;
     this.subs.add(topic);
     this.send({op:"subscribe",id:"s"+(++this.id),topic,type,
-      throttle_rate:throttle,queue_length:1,
-      compression:App.cfg.compression || "none"});
+      throttle_rate:throttle,queue_length:1,compression:"none"});
   }
-  /* latch maps to TRANSIENT_LOCAL durability on the ROS side. It is not a
-     nicety: /integrated_command's subscriber is declared TRANSIENT_LOCAL, and
-     DDS refuses to match a VOLATILE publisher against it. Advertising without
-     latch produces a publisher that connects to nobody and reports no error —
-     start_mapping simply vanishes. */
-  advertise(topic,type,latch=false){
-    this.send({op:"advertise",id:"a"+(++this.id),topic,type,latch});
-  }
-  /* The stationary lock lives here rather than at the call sites, so it is an
-     invariant of the transport: no future button can travel the robot by
-     accident. E-STOP is unaffected — it publishes all-zero velocity, which is
-     a stop, and a stop must always get through. */
-  publish(topic,msg){
-    if(App.stationary && topic===T.vel){
-      const moving = ["forward_velocity","lateral_velocity","angular_velocity"]
-        .some(k => Math.abs(+msg?.[k] || 0) > 1e-6);
-      if(moving){
-        log("ปิดกั้นคำสั่งเดิน — โหมดอยู่กับที่เปิดอยู่ · locomotion blocked","e");
-        return;
-      }
-    }
-    this.send({op:"publish",id:"p"+(++this.id),topic,msg});
-  }
+  advertise(topic,type){ this.send({op:"advertise",id:"a"+(++this.id),topic,type}); }
+  publish(topic,msg){ this.send({op:"publish",id:"p"+(++this.id),topic,msg}); }
 
-  /* ms is per attempt, not per request: commanding.js fires this up to eight
-     times in a row the way the vendor's own examples do, so a single attempt
-     hanging for 8 s just piles up dead promises behind the retry that already
-     answered. */
-  call(service,type,args={},ms=3000){
+  call(service,type,args={}){
     return new Promise((res,rej)=>{
       if(!this.connected) return rej({message:"ไม่ได้เชื่อมต่อ"});
       const id="c"+(++this.id);
@@ -109,7 +74,7 @@ class RosBridge{
       this.send({op:"call_service",id,service,type,args});
       setTimeout(()=>{
         if(this.pending.has(id)){ this.pending.delete(id); rej({message:"service timeout"}); }
-      },ms);
+      },8000);
     });
   }
   topics(){ return this.call("/rosapi/topics","rosapi/Topics",{}); }

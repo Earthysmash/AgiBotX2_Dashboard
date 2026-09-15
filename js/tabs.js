@@ -28,18 +28,16 @@ const Tabs = {
       App.cloud=[]; App.depthBuf=null; App.depthW=App.depthH=0;
       App.mapGrid=null; App.mapping=false;
       App.imu={w:1,x:0,y:0,z:0};
-      App.pose={x:0,y:0,yaw:0};
-      /* The power strip sits OUTSIDE the panes, so wiping pane state missed
-         it: a simulated 75% battery stayed on screen over a live robot, which
-         is the one number an operator must never read wrong. */
-      clearPowerCards();
       Mock.reset();
     }
 
     $$(".tab").forEach(b=>b.classList.toggle("on",b.dataset.tab===name));
     $$(".pane").forEach(p=>p.classList.toggle("on",p.id==="pane-"+name));
-    /* Status cards and the motion bar mean nothing on the guide. */
+    /* The status rail and KPI strip mean nothing on the guide. */
     $("#chrome").style.display = name==="guide" ? "none" : "";
+
+    /* In auto mode the guide reads on white and the instruments on dark. */
+    applyTheme();
 
     if(sim){
       setConn("โหมดสาธิต · demo","warn");

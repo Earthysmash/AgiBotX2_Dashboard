@@ -9,108 +9,6 @@
 const RP = {yaw:0.5, pitch:0.18, zoom:1, drag:null,
             zmin:0.4, zmax:3.2, home:{yaw:0.5,pitch:0.18,zoom:1}};
 
-/* ---------------------------------------------------------- REAL KINEMATICS
-   Live posture, not animation. The demo path below still animates a canned
-   gesture, but when the robot is publishing joint state we run the actual URDF
-   chain and draw where the limbs really are. */
-
-App.joints = App.joints || {};        /* name -> radians, newest wins */
-
-function ingestJointState(m){
-  const js = m && m.joints;
-  if(!Array.isArray(js)) return;
-  for(const j of js) if(j && j.name != null) App.joints[j.name] = +j.position || 0;
-  App.jointsAt = now();
-}
-for(const t of [T.jointsArm, T.jointsLeg, T.jointsHead, T.jointsWaist, T.jointsHand])
-  Bus.on(t, ingestJointState);
-
-/* rpy -> 3x3, ZYX order, matching URDF convention. */
-function rpyMat(r){
-  const [cr,sr,cp,sp,cy,sy]=[Math.cos(r[0]),Math.sin(r[0]),Math.cos(r[1]),
-                             Math.sin(r[1]),Math.cos(r[2]),Math.sin(r[2])];
-  return [[cy*cp, cy*sp*sr-sy*cr, cy*sp*cr+sy*sr],
-          [sy*cp, sy*sp*sr+cy*cr, sy*sp*cr-cy*sr],
-          [-sp,   cp*sr,          cp*cr]];
-}
-/* Rodrigues: rotation of `ang` about unit axis a. Every X2 joint is revolute. */
-function axisMat(a,ang){
-  const c=Math.cos(ang), s=Math.sin(ang), t=1-c, [x,y,z]=a;
-  return [[t*x*x+c,   t*x*y-s*z, t*x*z+s*y],
-          [t*x*y+s*z, t*y*y+c,   t*y*z-s*x],
-          [t*x*z-s*y, t*y*z+s*x, t*z*z+c  ]];
-}
-const mul=(A,B)=>A.map((r,i)=>B[0].map((_,j)=>A[i][0]*B[0][j]+A[i][1]*B[1][j]+A[i][2]*B[2][j]));
-const app=(R,v)=>[R[0][0]*v[0]+R[0][1]*v[1]+R[0][2]*v[2],
-                  R[1][0]*v[0]+R[1][1]*v[1]+R[1][2]*v[2],
-                  R[2][0]*v[0]+R[2][1]*v[1]+R[2][2]*v[2]];
-const I3=[[1,0,0],[0,1,0],[0,0,1]];
-
-/* World pose of every link, walking the tree from base_link outward. Joints
-   are listed parent-before-child in the URDF, so one pass is enough. */
-function forwardKinematics(q){
-  const pose={ base_link:{p:[0,0,0], R:I3} };
-  let progress=true, left=URDF_JOINTS.slice();
-  while(progress && left.length){
-    progress=false;
-    const still=[];
-    for(const j of left){
-      const par=pose[j.p];
-      if(!par){ still.push(j); continue; }
-      let R=mul(par.R, rpyMat(j.r));
-      if(!j.f && j.a) R=mul(R, axisMat(j.a, q[j.n] || 0));
-      pose[j.c]={ p: par.p.map((v,i)=>v+app(par.R,j.t)[i]), R };
-      progress=true;
-    }
-    left=still;
-  }
-  return pose;
-}
-
-/* One segment per joint: parent link origin -> child link origin. Thickness is
-   chosen per body region so the figure still reads as a body rather than wire. */
-const LIMB_W = [
-  [/waist|torso/, 16, .84], [/head/, 10, .92],
-  [/shoulder|elbow/, 11, .78], [/wrist|hand/, 8, .74],
-  [/hip|knee/, 13, .70], [/ankle/, 10, .66],
-];
-function skeletonLive(){
-  const pose=forwardKinematics(App.joints);
-  refreshGroundOffset(pose);
-  const dz=groundOffset;                       /* lift so the soles meet z = 0 */
-  const S=[];
-  for(const j of URDF_JOINTS){
-    const a=pose[j.p], b=pose[j.c];
-    if(!a || !b) continue;
-    const d=Math.hypot(b.p[0]-a.p[0], b.p[1]-a.p[1], b.p[2]-a.p[2]);
-    if(d < 0.02) continue;                       /* skip coincident frames */
-    let w=9, sh=.78;
-    for(const [re,ww,ss] of LIMB_W) if(re.test(j.c)){ w=ww; sh=ss; break; }
-    S.push([[a.p[0],a.p[1],a.p[2]+dz], [b.p[0],b.p[1],b.p[2]+dz], w, sh]);
-  }
-  return S;
-}
-
-/* How high the pelvis (base_link, the URDF root) currently sits above the
-   floor. Everything the URDF produces is measured from the pelvis, but every
-   panel draws its ground plane at z = 0, so without this the figure hangs
-   below the grid and the LiDAR floor sits at -0.6. Derived from the stance
-   leg rather than hard-coded, so a crouch moves it correctly. */
-let groundOffset = 0.60;                       /* nominal standing height */
-function refreshGroundOffset(pose){
-  const feet=["left_ankle_roll_link","right_ankle_roll_link"]
-    .map(n=>pose[n]).filter(Boolean).map(v=>v.p[2]);
-  if(feet.length) groundOffset = -Math.min(...feet) + 0.068;   /* +sole thickness */
-}
-function groundZ(){ return groundOffset; }
-
-/* Joint state arrives on five topics at up to 500 Hz; treat it as stale after
-   two seconds so a dead feed shows the demo pose rather than freezing. */
-function haveLiveJoints(){
-  return !App.sim && App.jointsAt && (now()-App.jointsAt) < 2 &&
-         Object.keys(App.joints).length > 6;
-}
-
 /* Segment list: [a, b, thickness, shade] with a/b as [x,y,z] in metres. */
 function skeleton(t,g){
   const sway=Math.sin(t*0.9)*0.012;
@@ -194,7 +92,7 @@ function drawPose(){
     ctx.beginPath(); ctx.moveTo(c.x,c.y); ctx.lineTo(d.x,d.y); ctx.stroke();
   }
 
-  const segs=(haveLiveJoints() ? skeletonLive() : skeleton(Mock.t,Mock.gesture))
+  const segs=skeleton(Mock.t,Mock.gesture)
     .map(([a,b,t,sh])=>{ const A=proj(a), B=proj(b); return {A,B,t,sh,d:(A.d+B.d)/2}; })
     .sort((p,q)=>p.d-q.d);
 

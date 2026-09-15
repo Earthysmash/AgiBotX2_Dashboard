@@ -69,16 +69,8 @@ function renderBlock(b){
 
   /* the list of endpoints this dashboard actually binds */
   if(b.topics) return `<div class="cmd"><div class="out">`+
-    Object.entries(T).filter(([k])=>!["slamCmd","reloc","vel"].includes(k) && !k.startsWith("joints"))
+    Object.entries(T).filter(([k])=>!["slamCmd","reloc","vel","joints"].includes(k))
       .map(([k,v])=>esc(v)).join("\n")+`</div></div>`;
-
-  /* jumps to the Zenoh box with the robot's address already filled in */
-  if(b.zapply) return `
-    <div class="row" style="margin:11px 0">
-      <button class="pb" type="button" data-act="applyZenoh">
-        <span class="th1">🧪 เปิดกล่อง Zenoh พร้อมใส่ที่อยู่ให้แล้ว</span><span class="en1">🧪 Open the Zenoh box, address filled in</span>
-      </button>
-    </div>`;
 
   /* the "fill this into the settings box for me" button */
   if(b.apply) return `
@@ -114,17 +106,6 @@ function renderGuide(){
       ${s.blocks.map(renderBlock).join("")}
     </section>`).join("");
 
-  /* Collapsed by default: the numbered path above must stay the obvious one. */
-  const Z=GUIDE.zenoh;
-  const zenoh=`
-    <details class="gadv">
-      <summary>
-        <span class="th">${Z.icon} ${gsub(Z.title.th)} <i>${gsub(Z.sub.th)}</i></span>
-        <span class="en">${Z.icon} ${gsub(Z.title.en)} <i>${gsub(Z.sub.en)}</i></span>
-      </summary>
-      <div class="gadvin">${Z.blocks.map(renderBlock).join("")}</div>
-    </details>`;
-
   const trouble=`
     <section class="gtable">
       <h3><span class="th">🩹 แก้ปัญหาที่เจอบ่อย</span><i class="en">Common problems and what they mean</i></h3>
@@ -159,10 +140,6 @@ function renderGuide(){
           <label>ชื่อผู้ใช้ · SSH username</label>
           <input type="text" id="gUser" spellcheck="false">
         </div>
-        <button class="pb gsave" type="button" id="gSave"
-                title="เก็บ IP ไว้ถาวร · keep this IP after refresh">
-          <span class="th">💾 บันทึก</span><span class="en">Save</span>
-        </button>
         <div class="sp"></div>
         <div class="f">
           <label>ภาษา · Language</label>
@@ -180,7 +157,7 @@ function renderGuide(){
         <p class="en">${gsub(GUIDE.hero.p.en)}</p>
       </div>
 
-      ${steps}${zenoh}${trouble}${glossary}
+      ${steps}${trouble}${glossary}
     </div>`;
 
   wireGuide();
@@ -188,55 +165,18 @@ function renderGuide(){
 }
 
 function wireGuide(){
-  const ip=$("#gIp"), user=$("#gUser"), save=$("#gSave");
+  const ip=$("#gIp"), user=$("#gUser");
   ip.value=App.cfg.ip || DEFAULTS.ip;
   user.value=App.cfg.user || DEFAULTS.user;
 
-  /* Typing updates the commands on screen immediately so the operator can see
-     what they are about to run, but nothing is written to storage until Save.
-     Until then the button carries the unsaved state so a refresh is never a
-     silent loss. */
-  const markDirty=()=>save.classList.add("dirty");
-
-  const saveCfg=()=>{
-    const v=ip.value.trim();
-    if(!v || /\s/.test(v)){
-      toast("IP ว่างหรือมีช่องว่าง · IP is empty or has spaces","err");
-      ip.focus(); return;
-    }
-    App.cfg.ip=v;
-    App.cfg.user=user.value.trim() || DEFAULTS.user;
-    ip.value=App.cfg.ip; user.value=App.cfg.user;
-
-    /* The rosbridge URL has to move with the IP. Boot and connect() both
-       re-derive App.cfg.ip from that URL, so an IP saved on its own would be
-       overwritten by the old host on the very next reload. Keep the port the
-       operator already has. */
-    const port=(/^wss?:\/\/[^:/]+:(\d+)/.exec(App.cfg.url) || [,9090])[1];
-    App.cfg.url=urlFromIp(App.cfg.ip,port);
-    const urlField=$("#cfgUrl"); if(urlField) urlField.value=App.cfg.url;
-
-    refreshVars();
-    Prefs.save();
-    save.classList.remove("dirty");
-    save.classList.add("ok");
-    setTimeout(()=>save.classList.remove("ok"),1200);
-    toast("บันทึก IP "+App.cfg.ip+" แล้ว · saved","ok");
-    log("บันทึก IP หุ่นยนต์เป็น "+App.cfg.ip+" ("+App.cfg.url+")","s");
-  };
-
   ip.addEventListener("input",()=>{
     App.cfg.ip=ip.value.trim() || DEFAULTS.ip;
-    refreshVars(); markDirty();
+    refreshVars(); Prefs.save();
   });
   user.addEventListener("input",()=>{
     App.cfg.user=user.value.trim() || DEFAULTS.user;
-    refreshVars(); markDirty();
+    refreshVars(); Prefs.save();
   });
-  [ip,user].forEach(el=>el.addEventListener("keydown",e=>{
-    if(e.key==="Enter"){ e.preventDefault(); saveCfg(); }
-  }));
-  save.onclick=saveCfg;
 
   /* every copy button copies the command sitting next to it */
   $$("#pane-guide .cp").forEach(btn=>{
@@ -254,24 +194,11 @@ function wireGuide(){
     };
   });
 
-  /* opens settings with the Zenoh box expanded and the REST URL derived */
-  $$('#pane-guide [data-act="applyZenoh"]').forEach(b=>b.onclick=()=>{
-    const z=App.cfg.zenoh;
-    z.base="http://"+App.cfg.ip+":8000";
-    $("#zBase").value=z.base;
-    Prefs.save();
-    $("#setModal").classList.add("on");
-    $(".zbox").open=true;
-    $("#zBase").scrollIntoView({block:"center"});
-    toast("ตั้ง REST เป็น "+z.base,"ok");
-  });
-
   /* "fill it in for me" — writes the URL into settings and connects */
   $$('#pane-guide [data-act="applyIp"]').forEach(b=>b.onclick=()=>{
     const url=urlFromIp(App.cfg.ip);
     $("#cfgUrl").value=url;
     App.cfg.url=url; Prefs.save();
-    $("#gSave").classList.remove("dirty");
     toast("ตั้งค่าเป็น "+url,"ok");
     Tabs.go("live");
     connect();

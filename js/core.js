@@ -30,18 +30,6 @@ function log(msg,lvl="i"){
   el.appendChild(d); el.scrollTop=el.scrollHeight;
   while(el.children.length>400) el.firstChild.remove();
 }
-/* One accessor for both wire formats. With compression "cbor" a uint8[] field
-   arrives already decoded; with "none" it is a base64 string. Callers should
-   not have to know which mode the socket is in. */
-function asBytes(d){
-  if(d == null) return null;
-  if(d instanceof Uint8Array) return d;
-  if(ArrayBuffer.isView(d)) return new Uint8Array(d.buffer, d.byteOffset, d.byteLength);
-  if(d instanceof ArrayBuffer) return new Uint8Array(d);
-  if(typeof d === "string") return b64bytes(d);
-  return null;
-}
-
 function b64bytes(b64){
   const s=atob(b64), n=s.length, a=new Uint8Array(n);
   for(let i=0;i<n;i++) a[i]=s.charCodeAt(i);
@@ -52,22 +40,11 @@ function b64bytes(b64){
 const App = {
   /* sim is derived from the active tab now, not from a header switch */
   sim:false, motion:false, estop:false, tab:"live",
-  /* Stationary lock. Blocks whole-body preset motions (area 11) and any
-     non-zero locomotion velocity, leaving arm/head gestures and the
-     screen-only faces available. Deliberately NOT persisted: it defaults to
-     ON at every boot, because a saved "off" is exactly the setting you forget
-     you left off. The operator re-arms it consciously each session. */
-  stationary:true,
+  /* "auto" follows the tab — dark for the instruments, light for the guide,
+     which is a document and reads better on white. "dark"/"light" pin it. */
+  themeMode:"auto",
   cfg:{url:DEFAULTS.url, throttle:DEFAULTS.throttle, maxPts:DEFAULTS.maxPts,
-       ip:DEFAULTS.ip, user:DEFAULTS.user, autoRetry:true,
-       /* the Zenoh experiment: off unless the operator turned it on */
-       compression:DEFAULTS.compression,
-       zenoh:{base:"", key:"slam/lidar_odom", topic:"/slam/lidar_odom",
-              type:"nav_msgs/msg/Odometry"},
-       /* Voice-agent LLM. Empty by default: the panel says so rather than
-          answering a dinner question with a LiDAR reading. The key stays in
-          this browser and is never sent to the robot. */
-       llm:{url:"", model:"", key:""}},
+       ip:DEFAULTS.ip, user:DEFAULTS.user, autoRetry:true},
   cloud:[], depthBuf:null, depthW:0, depthH:0,
   imu:{w:1,x:0,y:0,z:0},
   pose:{x:0,y:0,yaw:0}, joints:{}, mapping:false,
@@ -118,20 +95,16 @@ const Prefs = {
       if(p.url)   App.cfg.url  = p.url;
       if(p.ip)    App.cfg.ip   = p.ip;
       if(p.user)  App.cfg.user = p.user;
-      if(p.theme) document.documentElement.setAttribute("data-theme",p.theme);
+      if(p.theme) App.themeMode = p.theme;
       if(p.lang)  document.body.setAttribute("data-lang",p.lang);
       if(typeof p.autoRetry === "boolean") App.cfg.autoRetry = p.autoRetry;
-      if(p.compression) App.cfg.compression = p.compression;
-      if(p.zenoh) Object.assign(App.cfg.zenoh, p.zenoh);
-      if(p.llm)   Object.assign(App.cfg.llm, p.llm);
     }catch{ /* corrupt or blocked storage is not worth failing boot over */ }
   },
   save(){
     try{
       localStorage.setItem(this.key, JSON.stringify({
         url:App.cfg.url, ip:App.cfg.ip, user:App.cfg.user, autoRetry:App.cfg.autoRetry,
-        compression:App.cfg.compression, zenoh:App.cfg.zenoh, llm:App.cfg.llm,
-        theme:document.documentElement.getAttribute("data-theme") || "dark",
+        theme:App.themeMode,
         lang:document.body.getAttribute("data-lang") || "both",
       }));
     }catch{}

@@ -35,26 +35,35 @@
 
 <div class="wrap">
 
-  <!-- Shared across Live and Demo; hidden on the guide. -->
+  <!-- Shared across Live and Demo; hidden on the guide.
+
+       One sticky rail instead of four stat cards. Mode and battery were the
+       only things ever read off those cards, and the E-stop used to scroll
+       off the top of the page with everything else. -->
   <div id="chrome">
-    <div class="stats">
-      <div class="stat" style="--c:var(--green)"><div class="ic">📡</div>
-        <div><b>การเชื่อมต่อ</b><u id="sConn">กำลังเชื่อมต่อ…</u></div></div>
-      <div class="stat" style="--c:var(--green)" id="battCard"><div class="ic">🔋</div>
-        <div><b>แบตเตอรี่</b><u id="sBatt">--%</u></div></div>
-      <div class="stat" style="--c:var(--cyan)"><div class="ic">⚡</div>
-        <div><b>แรงดันไฟ</b><u id="sVolt">-- V</u></div></div>
-      <div class="stat" style="--c:var(--purple)"><div class="ic">🎛</div>
-        <div><b>โหมดทำงาน</b><u class="sm" id="sMode">UNKNOWN</u></div></div>
+    <div class="srail">
+      <span class="spill" id="sConn">กำลังเชื่อมต่อ…</span>
+      <span class="sdiv"></span>
+      <span class="sfact"><b>โหมด</b><u class="m" id="sMode">UNKNOWN</u></span>
+      <span class="sdiv"></span>
+      <span class="sfact"><b>แบต</b><u id="sBatt">--%</u></span>
+      <span class="sfact"><u id="sVolt">-- V</u></span>
+      <span class="sdiv"></span>
+      <span class="sfact"><b>topics</b><u id="sTopics">—</u></span>
+      <span class="sp"></span>
+      <label class="sw"><input type="checkbox" id="motionSw"><i></i>
+        <span>อนุญาตให้เคลื่อนไหว</span></label>
+      <span class="mhint" id="motionHint">ระบบล็อกเพื่อความปลอดภัย</span>
+      <button class="estop" id="estopBtn">● หยุดฉุกเฉิน</button>
     </div>
 
-    <div class="mbar">
-      <label class="sw"><input type="checkbox" id="motionSw"><i></i>
-        <span>อนุญาตให้หุ่นยนต์เคลื่อนไหว</span></label>
-      <label class="sw"><input type="checkbox" id="statSw" checked><i></i>
-        <span>อยู่กับที่เท่านั้น · stationary only</span></label>
-      <span class="hint" id="motionHint">ระบบล็อกการเคลื่อนไหวเพื่อความปลอดภัย</span>
-      <button class="estop" id="estopBtn">● หยุดฉุกเฉิน</button>
+    <!-- The four numbers actually watched while the robot moves. Every one is
+         derived from data already arriving — none is a placeholder. -->
+    <div class="kpis">
+      <div class="kpi idle" id="kClear"><b>ระยะโล่งด้านหน้า</b><u>—<small>ม.</small></u></div>
+      <div class="kpi idle" id="kLidar"><b>LiDAR</b><u>—<small>Hz</small></u></div>
+      <div class="kpi idle" id="kPts"><b>จุดต่อเฟรม</b><u>—</u></div>
+      <div class="kpi idle" id="kPose"><b>ตำแหน่ง x, y</b><u>—</u></div>
     </div>
   </div>
 
@@ -126,29 +135,6 @@
     </div>
 
     <div class="card">
-      <h3>การโต้ตอบ<span class="tag">กดเพื่อสั่งหุ่น</span></h3>
-      <div class="body">
-        <div class="grp"><b>ท่าทาง (มือ/แขน) <i>(ต้องเปิดสวิตช์เคลื่อนไหว)</i></b>
-          <div class="btns" id="gArm"></div></div>
-        <div class="grp"><b>ท่าทาง (หัว) <i>(ต้องเปิดสวิตช์เคลื่อนไหว)</i></b>
-          <div class="btns" id="gHead"></div></div>
-        <div class="grp"><b>สีหน้า <i>(แสดงบนจอ)</i></b>
-          <div class="btns" id="gFace"></div></div>
-        <div class="grp"><b>ชี้ที่วัตถุตามสี
-          <i>(ต้องเปิดสวิตช์เคลื่อนไหว — คำนวณตำแหน่ง 3 มิติจริงจากกล้อง+depth+lidar)</i></b>
-          <div class="row">
-            <select id="poColor">
-              <option value="red">แดง</option><option value="green">เขียว</option>
-              <option value="blue">น้ำเงิน</option><option value="yellow">เหลือง</option>
-            </select>
-            <select id="poArm"><option value="2">แขนขวา</option><option value="1">แขนซ้าย</option></select>
-            <button class="ab" id="poBtn">👉 ชี้ที่วัตถุ</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card">
       <h3>แผนที่ (SLAM)<span class="tag">สร้างแผนที่ขณะเดินสำรวจ</span></h3>
       <div class="body">
         <div class="row" style="margin-bottom:9px">
@@ -198,6 +184,32 @@
       </div></div>
     </div>
 
+    <!-- Controls live in this column, telemetry in the other. Previously the
+         interaction panel sat between the depth view and the SLAM map, so
+         buttons and readouts competed for the same eye path. -->
+    <div class="card">
+      <h3>การโต้ตอบ<span class="tag">กดเพื่อสั่งหุ่น</span></h3>
+      <div class="body">
+        <div class="grp"><b>ท่าทาง (มือ/แขน) <i>(ต้องเปิดสวิตช์เคลื่อนไหว)</i></b>
+          <div class="btns" id="gArm"></div></div>
+        <div class="grp"><b>ท่าทาง (หัว) <i>(ต้องเปิดสวิตช์เคลื่อนไหว)</i></b>
+          <div class="btns" id="gHead"></div></div>
+        <div class="grp"><b>สีหน้า <i>(แสดงบนจอ)</i></b>
+          <div class="btns" id="gFace"></div></div>
+        <div class="grp"><b>ชี้ที่วัตถุตามสี
+          <i>(ต้องเปิดสวิตช์เคลื่อนไหว — คำนวณตำแหน่ง 3 มิติจริงจากกล้อง+depth+lidar)</i></b>
+          <div class="row">
+            <select id="poColor">
+              <option value="red">แดง</option><option value="green">เขียว</option>
+              <option value="blue">น้ำเงิน</option><option value="yellow">เหลือง</option>
+            </select>
+            <select id="poArm"><option value="2">แขนขวา</option><option value="1">แขนซ้าย</option></select>
+            <button class="ab" id="poBtn">👉 ชี้ที่วัตถุ</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="card">
       <h3>ผู้ช่วยเสียง (Voice Agent)<span class="tag ok">● LLM Agent</span></h3>
       <div class="body">
@@ -206,28 +218,8 @@
         </div>
         <div class="row" style="margin-top:9px;flex-wrap:nowrap">
           <input type="text" id="chatIn" style="flex:1"
-            placeholder='ถามอะไรก็ได้ เช่น "ข้างหน้ามีอะไร" หรือ "ตอนนี้กินข้าวอะไรดี"'>
+            placeholder='พิมพ์คำถาม เช่น "ข้างหน้ามีอะไร" หรือ "เดินหน้า 1 เมตร"'>
           <button class="pb" id="chatSend">ส่ง</button>
-        </div>
-        <details style="margin-top:8px">
-          <summary style="cursor:pointer;font-size:12px;color:var(--tx3)">
-            ตั้งค่า LLM &middot; LLM endpoint</summary>
-          <div class="row" style="margin-top:7px;gap:6px;flex-wrap:wrap">
-            <input type="text" id="llmUrl" style="flex:2;min-width:210px"
-              placeholder="https://api.openai.com/v1/chat/completions">
-            <input type="text" id="llmModel" style="flex:1;min-width:120px"
-              placeholder="gpt-4o-mini">
-            <input type="password" id="llmKey" style="flex:1;min-width:120px"
-              placeholder="API key (เก็บในเครื่องเท่านั้น)">
-            <button class="pb" id="llmSave">บันทึก</button>
-          </div>
-          <div style="font-size:11px;color:var(--tx3);margin-top:6px;line-height:1.5">
-            รองรับ endpoint แบบ OpenAI chat-completions รวมถึง Ollama ที่รันในเครื่อง
-            (<span class="m">http://localhost:11434/v1/chat/completions</span> ไม่ต้องใช้คีย์)
-            &mdash; คีย์ถูกเก็บใน localStorage ของเบราว์เซอร์นี้เท่านั้น ไม่ถูกส่งไปที่หุ่นยนต์
-          </div>
-        </details>
-        <div class="row" style="display:none">
         </div>
       </div>
     </div>
@@ -272,11 +264,6 @@
   <div class="mb">
     <div class="fld"><label>rosbridge WebSocket URL</label>
       <input type="text" id="cfgUrl" value="ws://10.0.1.41:9090"></div>
-    <div class="fld"><label>การบีบอัด · Wire format</label>
-      <select id="cfgCompression">
-        <option value="cbor">CBOR — ไบนารี เร็วกว่า (แนะนำ)</option>
-        <option value="none">none — JSON + base64 (ของเดิม)</option>
-      </select></div>
     <div class="fld"><label>Throttle ภาพ (ms ต่อเฟรม)</label>
       <input type="text" id="cfgThrottle" value="100"></div>
     <div class="fld"><label>จุดสูงสุดของ Point Cloud ต่อเฟรม</label>
@@ -288,35 +275,6 @@
       <button class="pb g" id="cfgConnect">เชื่อมต่อ</button>
       <button class="pb r" id="cfgDisconnect">ตัดการเชื่อมต่อ</button>
     </div>
-    <details class="zbox">
-      <summary>🧪 Zenoh (ทดลอง · experimental)</summary>
-      <div class="zin">
-        <p class="znote">
-          รับ <b>หนึ่ง topic</b> ผ่าน zenoh REST/SSE แทน rosbridge เพื่อวัดว่าคุ้มไหม
-          — ที่เหลือยังใช้ rosbridge ตามเดิม<br>
-          <i>Takes one topic off rosbridge and onto Zenoh, to see what it buys.
-          Everything else keeps working as before.</i>
-        </p>
-        <div class="fld"><label>zenohd REST base URL</label>
-          <input type="text" id="zBase" value="http://10.0.1.41:8000"></div>
-        <div class="fld"><label>Zenoh key expression</label>
-          <input type="text" id="zKey" value="slam/lidar_odom"></div>
-        <div class="fld"><label>ROS topic ที่จะแทนที่ · ROS topic it replaces</label>
-          <input type="text" id="zTopic" value="/slam/lidar_odom"></div>
-        <div class="fld"><label>ชนิดข้อความ · Message type</label>
-          <select id="zType">
-            <option value="nav_msgs/msg/Odometry">nav_msgs/msg/Odometry</option>
-            <option value="geometry_msgs/msg/PoseWithCovarianceStamped">geometry_msgs/msg/PoseWithCovarianceStamped</option>
-          </select></div>
-        <div class="row" style="margin:12px 0 8px">
-          <button class="pb" id="zStart">เริ่ม · Start</button>
-          <button class="pb gray" id="zStop">หยุด · Stop</button>
-          <button class="pb gray" id="zRaw">ดู sample ดิบ · Raw</button>
-        </div>
-        <div class="zstat" id="zStat">ยังไม่ได้เริ่ม · not started</div>
-      </div>
-    </details>
-
     <div class="note">
       หน้าเว็บคุยกับ ROS 2 ผ่าน <b>rosbridge</b> เท่านั้น — HTML ต่อ DDS ตรง ๆ ไม่ได้<br><br>
       บนหุ่นยนต์ (PC2) ให้รัน:<br>
@@ -341,11 +299,7 @@
      Load order is the dependency order. -->
 <script src="js/config.js"></script>
 <script src="js/core.js"></script>
-<script src="js/urdf-kin.js"></script>
-<script src="js/cbor.js"></script>
 <script src="js/rosbridge.js"></script>
-<script src="js/cdr.js"></script>
-<script src="js/zenoh.js"></script>
 <script src="js/mock.js"></script>
 <script src="js/panels-camera.js"></script>
 <script src="js/panels-lidar.js"></script>
